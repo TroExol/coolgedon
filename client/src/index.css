@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Reggae+One&family=Rubik&display=swap');
+@import url(./reset.css);
+
+#root {
+  position: relative;
+}
+
+#game {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+body {
+  font-family: 'Rubik', 'Reggae One', system-ui;
+  color: #fff;
+  background-image: url(./imgs/background.jpg);
+  background-size: contain;
+  background-repeat: repeat-y;
+  font-size: 22px;
+}
+
+@media (max-width: 1500px) {
+  #root {
+    flex-direction: column;
+  }
+}

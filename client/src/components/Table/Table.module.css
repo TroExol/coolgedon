@@ -1,0 +1,37 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    grid-area: table;
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.07);
+    padding: 20px;
+}
+
+.infoCards {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.shopCards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+}
+
+.shopTitle {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.notFleaMarketCards {
+    display: flex;
+    gap: 10px;
+}

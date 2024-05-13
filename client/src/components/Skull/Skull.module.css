@@ -1,0 +1,48 @@
+.container {
+  height: fit-content;
+  position: relative;
+  transition: all 0.1s linear;
+  user-select: none;
+  border-radius: 10px;
+  border: 3px solid transparent;
+  outline: none;
+
+  &:focus-visible {
+    border: 3px solid #ccc !important;
+  }
+
+  &:not(.clickable) {
+    border: 3px solid transparent !important;
+  }
+
+  & > span {
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    z-index: 1;
+    pointer-events: none;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover {
+    border: 3px solid #ccc;
+  }
+}
+
+.bordered {
+  border: 3px solid #fff;
+}
+
+.skull {
+  height: 60px;
+  user-select: none;
+}
+
+.big {
+  height: 300px;
+}

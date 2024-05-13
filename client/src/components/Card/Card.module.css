@@ -1,0 +1,73 @@
+.description {
+  margin-top: 5px;
+  text-align: center;
+}
+
+.wrapper {
+  height: fit-content;
+  position: relative;
+  user-select: none;
+
+  & > span {
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    z-index: 1;
+    pointer-events: none;
+  }
+}
+
+.card {
+  height: 200px;
+  width: 141px;
+  border-radius: 6px;
+  box-shadow: 1px 1px 7px 0 #000;
+  border: 3px solid transparent;
+  outline: none;
+  position: relative;
+  transition: all 0.1s linear;
+  user-select: none;
+
+  &:not(.clickable) {
+    border: 3px solid transparent !important;
+  }
+
+
+  &div {
+    background: rgba(0, 0,0, 0.85);
+  }
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover {
+    border: 3px solid #ccc;
+  }
+
+  &:focus-visible {
+    border: 3px solid #fff;
+  }
+}
+
+.disabled {
+  filter: brightness(0.6);
+}
+
+.bordered {
+  border: 3px solid #fff;
+}
+
+.mini {
+  height: 80px;
+  width: 57px;
+  border-radius: 3px;
+}
+
+.big {
+  height: 500px;
+  width: 353px;
+  border-radius: 12px;
+}

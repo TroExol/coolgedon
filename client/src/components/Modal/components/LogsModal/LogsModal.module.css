@@ -1,0 +1,15 @@
+.container {
+  padding: 10px;
+  background: rgba(0,0,0,0.7);
+  text-align: center;
+  border-radius: 10px;
+}
+
+.log:not(:first-child) {
+  margin-top: 10px;
+}
+
+.time {
+  color: rgb(128, 128, 128);
+  margin-right: 15px;
+}

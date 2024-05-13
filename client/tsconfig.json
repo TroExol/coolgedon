@@ -1,0 +1,45 @@
+{
+  "ts-node": {
+    "compilerOptions": { "module": "commonjs" }
+  },
+  "compilerOptions": {
+    "ignoreDeprecations": "5.0",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "rootDir": "./",
+    "baseUrl": "./",
+    "paths": {
+      "Component/*": ["./src/components/*"],
+      "Image/*": ["./src/imgs/*"],
+      "Type/*": ["./src/types/*"],
+      "Store/*": ["./src/stores/*"],
+      "Service/*": ["./src/services/*"],
+      "Hook/*": ["./src/hooks/*"],
+      "Store": ["./src/stores/index.ts"],
+      "Helpers": ["./src/helpers.ts"]
+    },
+    "importsNotUsedAsValues": "error",
+    "sourceMap": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "jsx": "react-jsx",
+    "experimentalDecorators": true,
+  },
+  "include": [
+    "src",
+  ]
+}

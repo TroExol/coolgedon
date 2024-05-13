@@ -1,0 +1,67 @@
+.container {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.7);
+    overflow-y: auto;
+    color: #fff;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100dvh;
+}
+
+.content {
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.collapsed {
+    bottom: auto;
+    left: auto;
+    overflow-y: hidden;
+
+    & > .actions {
+        position: initial;
+    }
+}
+
+.title {
+    margin-bottom: 20px;
+    font-size: 36px;
+    text-align: center;
+}
+
+.actions {
+    height: 70px;
+    font-size: 50px;
+    display: flex;
+    gap: 10px;
+    position: fixed;
+    align-items: center;
+    z-index: 1;
+    top: 10px;
+    right: 10px;
+
+    & > div {
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.1s linear;
+        border: 3px solid transparent;
+        outline: none;
+        border-radius: 5px;
+
+        &:focus-visible {
+            border: 3px solid #ccc;
+        }
+    }
+}
+
+.bottomCloseButton {
+    display: block;
+    margin: 10px auto auto;
+}

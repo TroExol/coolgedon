@@ -1,0 +1,23 @@
+.button {
+  display: block;
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 10px 20px;
+  background: #353a35;
+  opacity: 1;
+  transition: all 0.1s linear;
+
+  &[disabled] {
+    cursor: default;
+    background: #1e211e;
+  }
+
+  &:not([disabled]):hover,
+  &:not([disabled]):focus-visible {
+    background: #404640;
+  }
+
+  &:not([disabled]):focus-visible {
+    border: 1px solid #fff;
+  }
+}

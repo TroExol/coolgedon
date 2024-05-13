@@ -1,0 +1,54 @@
+.container {
+  height: fit-content;
+  position: relative;
+  user-select: none;
+
+  & > span {
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    z-index: 1;
+    pointer-events: none;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover {
+    border: 3px solid #ccc;
+  }
+}
+
+.disabled {
+  filter: brightness(0.6);
+}
+
+.prop {
+  height: 40px;
+  border-radius: 5px;
+  box-shadow: 1px 1px 7px 0 #000;
+  border: 3px solid transparent;
+  outline: none;
+  transition: all 0.1s linear;
+  user-select: none;
+
+  &:not(.clickable) {
+    border: 3px solid transparent !important;
+  }
+
+  &:focus-visible {
+    border: 3px solid #ccc;
+  }
+}
+
+.bordered {
+  border: 3px solid #fff;
+}
+
+.big {
+  border-radius: 13px;
+  height: 200px;
+}

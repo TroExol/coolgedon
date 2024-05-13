@@ -1,0 +1,37 @@
+.container {
+    padding: 10px;
+    background: rgba(0,0,0,0.7);
+    width: 350px;
+    overflow: auto;
+    text-align: center;
+    height: 100dvh;
+    position: fixed;
+}
+
+.log:not(:first-child) {
+    margin-top: 10px;
+}
+
+.log > span {
+    display: block;
+}
+
+.time {
+    color: rgb(128, 128, 128);
+}
+
+@media (max-width: 1500px) {
+    .container {
+        width: 100%;
+        height: fit-content;
+        position: initial;
+    }
+
+    .log:nth-last-child(n+4) {
+         display: none;
+     }
+
+    .log > span:not(:first-child) {
+        margin-left: 10px;
+    }
+}

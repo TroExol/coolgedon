@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+  margin-left: 350px;
+}
+
+@media (max-width: 1500px) {
+  .container {
+    margin-left: 0;
+  }
+}

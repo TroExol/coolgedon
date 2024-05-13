@@ -1,0 +1,29 @@
+.container {
+  height: 80px;
+  transition: border 0.1s linear;
+  border: 3px solid transparent;
+  outline: none;
+  border-radius: 10px;
+  padding: 3px;
+  user-select: none;
+
+  &:not(.clickable) {
+    border: 3px solid transparent !important;
+  }
+
+  &:focus-visible {
+    border: 3px solid #ccc !important;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover {
+    border: 3px solid #ccc;
+  }
+}
+
+.big {
+  height: 90%;
+}

@@ -1,0 +1,13 @@
+.input {
+  background-color: #353a35;
+  color: #fff;
+  border: 1px solid #000;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 1px 1px 15px 0 #000;
+  text-align: center;
+
+  &:not([disabled]):focus-visible {
+    border: 1px solid #fff;
+  }
+}

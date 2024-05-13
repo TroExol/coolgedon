@@ -1,0 +1,112 @@
+{
+  "env": {
+    "es2021": true
+  },
+  "extends": [
+    "airbnb-base/legacy",
+    "plugin:perfectionist/recommended-natural",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "perfectionist",
+    "@typescript-eslint"
+  ],
+  "ignorePatterns": [
+    "/*",
+    "!/src"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "overrides": [
+    {
+      "files": ["*.test.ts"],
+      "env": {
+        "jest": true
+      }
+    }
+  ],
+  "rules": {
+    "arrow-parens": [
+      "error",
+      "as-needed"
+    ],
+    "max-len": ["error", {
+      "code": 120,
+      "ignoreComments": true,
+      "ignoreStrings": true,
+      "ignoreTemplateLiterals": true
+    }],
+    "no-console": "off",
+    "no-continue": "off",
+    "no-plusplus": "off",
+    "no-shadow": "off",
+    "no-await-in-loop": "off",
+    "lines-between-class-members": "off",
+    "@typescript-eslint/no-shadow": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-inferrable-types": "error",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "comma-dangle": ["error", "always-multiline"],
+    "import/no-dynamic-require": "off",
+    "global-require": "off",
+    "import/prefer-default-export": "off",
+    "no-param-reassign": "off",
+    "class-methods-use-this": "off",
+    "import/extensions": "off",
+    "import/order": "off",
+    "consistent-return": "off",
+    "no-restricted-syntax": "off",
+    "func-names": "off",
+    "perfectionist/sort-objects": "off",
+    "perfectionist/sort-array-includes": "off",
+    "perfectionist/sort-interfaces": "off",
+    "perfectionist/sort-maps": "off",
+    "perfectionist/sort-object-types": "off",
+    "perfectionist/sort-union-types": "off",
+    "no-nested-ternary": "off",
+    "no-void": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "perfectionist/sort-imports": [
+      "error",
+      {
+        "type": "natural",
+        "order": "desc",
+        "groups": [
+          "type",
+          [
+            "builtin",
+            "external"
+          ],
+          "internal-type",
+          "internal",
+          [
+            "parent-type",
+            "sibling-type",
+            "index-type"
+          ],
+          [
+            "parent",
+            "sibling",
+            "index"
+          ],
+          "object",
+          "unknown"
+        ],
+        "newlines-between": "always",
+        "internal-pattern": [
+          "Type/**",
+          "Entity/**",
+          "Event/**",
+          "Cards",
+          "Rooms",
+          "Player",
+          "GameHandlers",
+          "Helpers/**",
+          "Helpers",
+          "CardHandler/**",
+          "GuardHandler/**",
+          "Index"
+        ]
+      }
+    ]
+  }
+}

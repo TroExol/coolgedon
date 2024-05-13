@@ -1,0 +1,21 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.button {
+  margin: 10px auto auto;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  & > h3 {
+    margin-bottom: 10px;
+    font-size: 26px;
+  }
+}

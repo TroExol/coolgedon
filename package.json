@@ -1,0 +1,17 @@
+{
+  "name": "coolgedon",
+  "version": "1.0.0",
+  "description": "Эпичные схватки боевых магов: Крутагидон",
+  "repository": "https://github.com/TroExol/coolgedon.git",
+  "author": "TroExol <zeidxol@gmail.com>",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd shared && yarn install && cd .. && concurrently \"husky\" \"cd client && yarn install\" \"cd server && yarn install\"",
+    "start:dev": "concurrently \"cd client && yarn start\" \"cd server && yarn start:dev\"",
+    "lint": "concurrently \"cd client && yarn lint\" \"cd server && yarn lint\" \"cd shared && yarn lint\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^9.0.11"
+  }
+}

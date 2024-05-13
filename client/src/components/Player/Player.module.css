@@ -1,0 +1,42 @@
+.container {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  padding: 10px 20px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  transition: border 0.2s linear;
+}
+
+.active {
+  border: 2px solid #fff;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  &:not(:first-child) {
+    margin-top: 10px;
+  }
+}
+
+.removeButton {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 23px;
+  transition: all 0.1s linear;
+  border: 3px solid transparent;
+  outline: none;
+  border-radius: 5px;
+
+  &:focus-visible {
+    border: 3px solid #ccc;
+  }
+}
