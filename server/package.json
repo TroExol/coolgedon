@@ -19,7 +19,7 @@
     "lint": "yarn typecheck && yarn eslint && yarn test"
   },
   "dependencies": {
-    "@coolgedon/shared": "file:../shared/dist",
+    "@coolgedon/shared": "file:../shared/dist/cjs",
     "uuid": "^9.0.1",
     "ws": "^8.16.0"
   },

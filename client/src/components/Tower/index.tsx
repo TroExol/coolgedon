@@ -10,8 +10,6 @@ import { onEnter } from 'Helpers';
 
 import styles from './Tower.module.css';
 
-const towerImg = require('../../imgs/tower_back.png');
-
 interface TProps {
   className?: string;
 }
@@ -30,7 +28,7 @@ export const Tower: FC<TProps> = observer(({
           className,
         )}
         draggable="false"
-        src={towerImg}
+        src="/src/imgs/tower_back.png"
       />
     );
     previewStore.show(componentToShow);
@@ -48,7 +46,7 @@ export const Tower: FC<TProps> = observer(({
       onClick={onClick}
       onKeyDown={onEnter(onClick)}
       role="button"
-      src={towerImg}
+      src="/src/imgs/tower_back.png"
       tabIndex={0}
     />
   );

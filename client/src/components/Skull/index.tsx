@@ -9,8 +9,6 @@ import { onEnter } from 'Helpers';
 
 import styles from './Skull.module.css';
 
-const skullBackImg = require('../../imgs/skull.png');
-
 interface TProps {
   big?: boolean;
   bordered?: boolean;
@@ -28,9 +26,9 @@ export const Skull: FC<TProps> = observer(({
   count,
   onClick,
 }) => {
-  const skullImg = skull
-    ? require(`../../imgs/skulls/${skull.id}.png`)
-    : skullBackImg;
+  const skullImgUrl = skull
+    ? `/src/imgs/skulls/${skull.id}.png`
+    : '/src/imgs/skull.png';
 
   const clickable = onClick && count !== 0;
 
@@ -59,7 +57,7 @@ export const Skull: FC<TProps> = observer(({
           },
         )}
         draggable="false"
-        src={skullImg}
+        src={skullImgUrl}
       />
       {count && (
         <span>{count}</span>

@@ -17,30 +17,14 @@
   ],
   "ignorePatterns": [
     "/*",
-    "!/src",
-    "!/webpack.config.ts",
-    "!/webpack.parts.ts"
+    "!/src"
   ],
-  "overrides": [
-    {
-      "files": [
-        "./webpack.config.ts",
-        "./webpack.parts.ts"
-      ],
-      "rules": {
-        "import/no-extraneous-dependencies": "off"
-      }
-    }
-  ],
-  "parser": "@typescript-eslint/parser",
   "settings": {
     "import/resolver": {
-      "webpack": {
-        "config": "webpack.config.ts",
-        "argv": "--mode=development"
-      }
+      "typescript": {}
     }
   },
+  "parser": "@typescript-eslint/parser",
   "rules": {
     "arrow-parens": [
       "error",

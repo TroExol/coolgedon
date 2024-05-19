@@ -36,7 +36,5 @@
       "Index": ["./src/index.ts"]
     }
   },
-  "include": [
-    "src",
-  ]
+  "include": ["src"]
 }

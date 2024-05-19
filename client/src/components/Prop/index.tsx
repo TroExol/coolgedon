@@ -9,8 +9,6 @@ import { onEnter } from 'Helpers';
 
 import styles from './Prop.module.css';
 
-const propBackImg = require('../../imgs/prop.jpg');
-
 interface Props {
   className?: string;
   big?: boolean;
@@ -30,9 +28,9 @@ export const Prop: FC<Props> = observer(({
   disabled,
   onClick,
 }) => {
-  const propImg = prop
-    ? require(`../../imgs/props/${prop.id}.jpg`)
-    : propBackImg;
+  const propImgUrl = prop
+    ? `/src/imgs/props/${prop.id}.jpg`
+    : '/src/imgs/prop.jpg';
 
   const clickable = onClick && count !== 0;
 
@@ -56,7 +54,7 @@ export const Prop: FC<Props> = observer(({
         draggable="false"
         onClick={onClick as MouseEventHandler}
         onKeyDown={onEnter(onClick as KeyboardEventHandler)}
-        src={propImg}
+        src={propImgUrl}
         tabIndex={!disabled && clickable ? 0 : -1}
       />
       {!!count && (

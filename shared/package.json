@@ -12,7 +12,7 @@
     "eslint": "eslint src/ --ext .js --ext .ts",
     "eslint:fix": "eslint src/ --ext .js --ext .ts --fix",
     "typecheck": "tsc --noEmit",
-    "build": "tsc --declaration",
+    "build": "tsc --declaration && tsc --declaration -outDir dist/cjs --module commonjs",
     "lint": "yarn typecheck && yarn eslint"
   },
   "devDependencies": {

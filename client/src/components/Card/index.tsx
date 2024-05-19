@@ -6,7 +6,7 @@ import type { TCard } from '@coolgedon/shared';
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import classNames from 'classnames';
-import { ECardTypeSprites, ECardTypes } from '@coolgedon/shared';
+import { ECardTypes, isCardTypeWithNumber } from '@coolgedon/shared';
 
 import { onEnter } from 'Helpers';
 
@@ -42,11 +42,9 @@ export const Card: FC<TProps> = observer(({
   description,
   onClick,
 }) => {
-  const isSprite = type in ECardTypeSprites;
-
-  const cardImg = ((isSprite && number) || !isSprite)
+  const cardImgUrl = ((isCardTypeWithNumber(type) && !!number) || !isCardTypeWithNumber(type))
       && type
-      && require(`../../imgs/cards/${isSprite ? `${type}/${number}` : type}.jpg`);
+      && `/src/imgs/cards/${isCardTypeWithNumber(type) ? `${type}/${number}` : type}.jpg`;
 
   const clickable = onClick && count !== 0;
   const classes = classNames(
@@ -67,7 +65,7 @@ export const Card: FC<TProps> = observer(({
         className={styles.wrapper}
         title={`${title || ''}${count !== undefined ? ` ${count} шт.` : ''}`}
       >
-        {count !== 0
+        {count !== 0 && cardImgUrl
           ? (
             <img
               alt="Карта"
@@ -75,7 +73,7 @@ export const Card: FC<TProps> = observer(({
               draggable="false"
               onClick={onClick as MouseEventHandler}
               onKeyDown={onEnter(onClick as KeyboardEventHandler)}
-              src={cardImg}
+              src={cardImgUrl}
               tabIndex={!disabled && clickable ? 0 : -1}
             />
           )

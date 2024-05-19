@@ -31,14 +31,18 @@ export const PlayCardModal = observer(({
         number={card.number}
         type={card.type}
       />
-      {card.canPlay && roomStore.isActive(roomStore.me) && !roomStore.gameEnded && (
+      {card.canPlay
+        && roomStore.isActive(roomStore.me)
+        && !roomStore.gameEnded
+        && roomStore.playersArray.length > 1
+        && (
         <Button
           className={styles.button}
           onClick={onClickHandler}
         >
           Разыграть
         </Button>
-      )}
+        )}
     </div>
   );
 });

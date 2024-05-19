@@ -27,7 +27,7 @@ export const PlayPropModal: FC<TProps> = observer(({
         big
         prop={prop}
       />
-      {!roomStore.gameEnded && (
+      {!roomStore.gameEnded && roomStore.playersArray.length > 1 && (
         <Button
           className={styles.button}
           onClick={onConfirm}
