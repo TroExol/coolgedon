@@ -260,15 +260,33 @@ describe('playProp', () => {
     });
   });
 
-  test('Нет обработчика', async () => {
-    const prop = testHelper.createMockProp({ room, ...propMap[7] });
-    prop.ownerNickname = activePlayer.nickname;
-    activePlayer.props = [prop];
+  describe('prop 7', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const prop = testHelper.createMockProp({ room, ...propMap[7] });
+      prop.ownerNickname = activePlayer.nickname;
+      activePlayer.props = [prop];
 
-    await playProp({ room, prop });
+      await playProp({ room, prop });
 
-    expect(prop.played).toBeFalsy();
-    expect(room.logEvent).toHaveBeenCalledTimes(0);
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Нет обработчика свойства id 7');
+      expect(prop.played).toBeFalsy();
+      expect(activePlayer.hand.length).toBe(5);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('prop 8', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const prop = testHelper.createMockProp({ room, ...propMap[8] });
+      prop.ownerNickname = activePlayer.nickname;
+      activePlayer.props = [prop];
+
+      await playProp({ room, prop });
+
+      expect(prop.played).toBeFalsy();
+      expect(activePlayer.hand.length).toBe(5);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
   });
 });

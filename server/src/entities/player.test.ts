@@ -1,5 +1,5 @@
 import { cardMap } from 'AvailableCards';
-import { ECardTypes } from '@coolgedon/shared';
+import { ECardTypes, type TSkull } from '@coolgedon/shared';
 
 import * as testHelper from 'Helpers/tests';
 import { getCardsIn, getLastElement, toPlayerVariant } from 'Helpers';
@@ -136,13 +136,15 @@ describe('Player', () => {
       expect(otherPlayer.hp).toBe(16);
       expect(room.logEvent).toHaveBeenLastCalledWith('Игроку otherPlayer нанесли 4 урона');
       expect(room.sendInfo).toHaveBeenCalledTimes(1);
+      expect(otherPlayer.skulls.length).toBe(0);
       expect(otherPlayer.hasTower).toBeTruthy();
       expect(activePlayer.hasTower).toBeFalsy();
 
       expect(otherPlayer.damage({ damage: 16 })).toBeTruthy();
       expect(otherPlayer.hp).toBe(20);
       expect(room.logEvent).toHaveBeenLastCalledWith('Игрок otherPlayer умер');
-      expect(room.sendInfo).toHaveBeenCalledTimes(2);
+      expect(room.sendInfo).toHaveBeenCalledTimes(3);
+      expect(otherPlayer.skulls.length).toBe(1);
       expect(otherPlayer.hasTower).toBeTruthy();
       expect(activePlayer.hasTower).toBeFalsy();
 
@@ -153,7 +155,8 @@ describe('Player', () => {
       expect(otherPlayer.damage({ damage: 4, attacker: activePlayer })).toBeFalsy();
       expect(otherPlayer.hp).toBe(16);
       expect(room.logEvent).toHaveBeenLastCalledWith('Игрок activePlayer нанес 4 урона игроку otherPlayer');
-      expect(room.sendInfo).toHaveBeenCalledTimes(3);
+      expect(room.sendInfo).toHaveBeenCalledTimes(4);
+      expect(otherPlayer.skulls.length).toBe(1);
       expect(otherPlayer.hasTower).toBeTruthy();
       expect(activePlayer.hasTower).toBeFalsy();
       expect(activePlayer.activePermanent.indexOf(place6)).not.toBe(-1);
@@ -163,9 +166,9 @@ describe('Player', () => {
       expect(otherPlayer.hp).toBe(20);
       // Здесь есть logEvent и sendInfo у takeSkull
       // Здесь есть logEvent и sendInfo у discardCards
-      expect(room.logEvent).toHaveBeenNthCalledWith(4, 'Игрок activePlayer убил игрока otherPlayer');
-      expect(room.sendInfo).toHaveBeenCalledTimes(6);
-      expect(otherPlayer.skulls.length).toBe(1);
+      expect(room.logEvent).toHaveBeenNthCalledWith(6, 'Игрок activePlayer убил игрока otherPlayer');
+      expect(room.sendInfo).toHaveBeenCalledTimes(7);
+      expect(otherPlayer.skulls.length).toBe(2);
       expect(otherPlayer.skulls[0].ownerNickname).toBe('otherPlayer');
       expect(activePlayer.hasTower).toBeTruthy();
       expect(otherPlayer.hasTower).toBeFalsy();
@@ -175,8 +178,8 @@ describe('Player', () => {
       expect(otherPlayer.damage({ damage: 20, attacker: activePlayer, giveSkull: false })).toBeTruthy();
       expect(otherPlayer.hp).toBe(20);
       expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer убил игрока otherPlayer');
-      expect(room.sendInfo).toHaveBeenCalledTimes(7);
-      expect(otherPlayer.skulls.length).toBe(1);
+      expect(room.sendInfo).toHaveBeenCalledTimes(8);
+      expect(otherPlayer.skulls.length).toBe(2);
       expect(activePlayer.hasTower).toBeTruthy();
       expect(otherPlayer.hasTower).toBeFalsy();
 
@@ -816,12 +819,16 @@ describe('Player', () => {
       const skull1 = testHelper.createMockSkull({ room, id: 1 });
       const skull2 = testHelper.createMockSkull({ room, id: 2 });
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedSkulls: [skull1], variant: 1 }));
+      const wsSendMessageAsyncSpy = spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedSkulls: [skull1], variant: 1 }));
 
       const result = await activePlayer.selectSkulls({ skulls: [skull1, skull2], variants: [{ id: 1, value: '1' }] });
       expect(result.skulls).toEqual([skull1]);
       expect(result.variant).toBe(1);
       expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect((wsSendMessageAsyncSpy.mock.calls[0][1].data as {skulls: TSkull[]}).skulls).toEqual([
+        { id: 1 },
+        { id: 2 },
+      ]);
     });
 
     test('Правильно возвращает ответ от клиента, когда жетонов < count', async () => {

@@ -6,6 +6,7 @@ import { observer } from 'mobx-react-lite';
 import { store } from 'Store';
 import { onEnter } from 'Helpers';
 import { RulesModal } from 'Component/RoomUtilButtons/components/rulesModal';
+import { ContactModal } from 'Component/RoomUtilButtons/components/contactModal';
 import { ClearRoomModal } from 'Component/Modal/components/ClearRoomModal';
 import { Button } from 'Component/Button';
 
@@ -20,6 +21,11 @@ export const RoomUtilButtons: FC = observer(() => {
     previewStore.show(componentToShow);
   }, [previewStore]);
 
+  const onShowContact = useCallback(() => {
+    const componentToShow = (<ContactModal />);
+    modalsStore.show(componentToShow);
+  }, [modalsStore]);
+
   const toggleShowRoomId = () => setShowRoomId(!showRoomId);
 
   const onReset = useCallback(() => {
@@ -32,13 +38,18 @@ export const RoomUtilButtons: FC = observer(() => {
 
   return (
     <div className={styles.container}>
-      <div>
+      <div className={styles.controls}>
         <Button
-          className={styles.buttonRules}
           onClick={onShowRules}
           onKeyDown={onEnter(onShowRules)}
         >
           Правила
+        </Button>
+        <Button
+          onClick={onShowContact}
+          onKeyDown={onEnter(onShowContact)}
+        >
+          Контакты
         </Button>
         <div
           className={styles.buttonRoomName}

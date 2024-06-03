@@ -409,4 +409,102 @@ describe('playSkull', () => {
       expect(room.logEvent).toHaveBeenCalledTimes(0);
     });
   });
+
+  describe('skull 14', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 14 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('skull 15', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 15 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('skull 16', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 16 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('skull 17', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 17 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('skull 18', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 18 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('skull 19', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 19 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('skull 20', () => {
+    test('Не разыгрывается без обработчика', async () => {
+      const skull = testHelper.createMockSkull({ room, id: 20 });
+      testHelper.giveSkullToPlayer(skull, activePlayer);
+
+      await playSkull({ room, skull });
+
+      expect(activePlayer.discard.length).toBe(0);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hand.length).toBe(5);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+  });
 });

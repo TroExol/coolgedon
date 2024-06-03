@@ -73,6 +73,25 @@ describe('treasures 6', () => {
     expect(activePlayer.totalPower).toBe(0);
   });
 
+  test('Разыгрывается, если нет карт для передачи', async () => {
+    activePlayer.deck = [];
+    activePlayer.hand = activePlayer.hand.filter(card => card === treasure6);
+
+    const selectCardsSpy = spyOn(activePlayer, 'selectCards').mockResolvedValue({ cards: [], variant: 'otherPlayer' });
+    spyOn(otherPlayer, 'guard');
+
+    await treasure6.play({ type: 'simple', params: { cardUsedByPlayer: true } });
+
+    expect(treasure6.played).toBeTruthy();
+    expect(activePlayer.hand.length).toBe(1);
+    expect(activePlayer.discard.length).toBe(0);
+    expect(activePlayer.deck.length).toBe(0);
+    expect(otherPlayer.hand.length).toBe(5);
+    expect(selectCardsSpy).toHaveBeenCalledTimes(0);
+    expect(otherPlayer.guard).toHaveBeenCalledTimes(0);
+    expect(activePlayer.totalPower).toBe(0);
+  });
+
   test('Защитился', async () => {
     const cost0Card = activePlayer.hand.find(card => card.getTotalCost(activePlayer) === 0)!;
     cost0Card.data = { description: 'Из руки', from: 'hand' };

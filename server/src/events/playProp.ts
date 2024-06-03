@@ -81,6 +81,9 @@ export const playProp = async ({
         finalPlayer.takeCardsTo('hand', 1, finalPlayer.deck);
         prop.markAsPlayed();
         break;
+      case 7:
+      case 8:
+        break;
       default:
         console.error(`Нет обработчика свойства id ${prop.id}`);
     }

@@ -2,11 +2,6 @@ import type { TPlayGuardHandlerParams } from 'Event/playGuard';
 
 import { getCardsExceptCards } from 'Helpers';
 
-interface TCardData {
-  description: string;
-  from: 'hand' | 'discard';
-}
-
 exports.default = async function ({
   target,
   attacker,
@@ -37,7 +32,9 @@ exports.default = async function ({
     return;
   }
 
-  const from = (selected.cards[0].data as TCardData).from;
+  const from = target.hand.includes(selected.cards[0])
+    ? 'hand'
+    : 'discard';
   selected.cards.forEach(c => {
     c.data = undefined;
   });

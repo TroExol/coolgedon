@@ -63,6 +63,6 @@ export const playGuard = async ({
       target.discardCards([card], 'hand');
     }
   } catch (error) {
-    console.error(`Ошибка защиты картой type ${card.type} number ${card.number}`, error);
+    console.error(`Ошибка разыгрывания карты защиты type ${card.type} number ${card.number}`, error);
   }
 };

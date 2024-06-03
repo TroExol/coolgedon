@@ -860,8 +860,11 @@ describe('Card', () => {
       spyOn(room, 'sendInfo');
       spyOn(room, 'logEvent');
 
-      card.markAsPlayed();
-      expect(console.error).toHaveBeenCalledWith('Невозможно пометить карту разыгранной: карта была уже разыграна');
+      try {
+        card.markAsPlayed();
+      } catch (error) {
+        expect(error).toEqual(new Error('Невозможно пометить карту разыгранной: карта была уже разыграна'));
+      }
       expect(card.played).toBeTruthy();
       expect(room.onCurrentTurn.playedCards).toEqual({ });
       expect(room.sendInfo).toHaveBeenCalledTimes(0);
@@ -876,8 +879,11 @@ describe('Card', () => {
       spyOn(room, 'sendInfo');
       spyOn(room, 'logEvent');
 
-      card.markAsPlayed();
-      expect(console.error).toHaveBeenCalledWith('Невозможно пометить карту разыгранной: нет владельца');
+      try {
+        card.markAsPlayed();
+      } catch (error) {
+        expect(error).toEqual(new Error('Невозможно пометить карту разыгранной: нет владельца'));
+      }
       expect(card.played).toBeFalsy();
       expect(room.onCurrentTurn.playedCards).toEqual({ });
       expect(room.sendInfo).toHaveBeenCalledTimes(0);
@@ -893,8 +899,11 @@ describe('Card', () => {
       spyOn(room, 'sendInfo');
       spyOn(room, 'logEvent');
 
-      card.markAsPlayed();
-      expect(console.error).toHaveBeenCalledWith('Невозможно пометить карту разыгранной: владелец не активный игрок');
+      try {
+        card.markAsPlayed();
+      } catch (error) {
+        expect(error).toEqual(new Error('Невозможно пометить карту разыгранной: владелец не активный игрок'));
+      }
       expect(card.played).toBeFalsy();
       expect(room.onCurrentTurn.playedCards).toEqual({ });
       expect(room.sendInfo).toHaveBeenCalledTimes(0);
@@ -908,8 +917,11 @@ describe('Card', () => {
       spyOn(room, 'sendInfo');
       spyOn(room, 'logEvent');
 
-      card.markAsPlayed();
-      expect(console.error).toHaveBeenCalledWith('Невозможно пометить карту разыгранной: это беспредел');
+      try {
+        card.markAsPlayed();
+      } catch (error) {
+        expect(error).toEqual(new Error('Невозможно пометить карту разыгранной: это беспредел'));
+      }
       expect(card.played).toBeFalsy();
       expect(room.onCurrentTurn.playedCards).toEqual({ });
       expect(room.sendInfo).toHaveBeenCalledTimes(0);

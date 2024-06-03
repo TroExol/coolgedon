@@ -18,3 +18,9 @@
     border: 3px solid #ccc;
   }
 }
+
+.controls {
+  & > *:not(:last-child) {
+    margin-top: 10px;
+  }
+}

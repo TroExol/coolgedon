@@ -178,6 +178,14 @@ export const playSkull = async ({
         skullOwner.takeCardsTo('hand', 1, skullOwner.deck);
         room.logEvent(`Игрок ${skullOwner.nickname} разыграл жетон дохлого колдуна`);
         break;
+      case 14:
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19:
+      case 20:
+        break;
       default:
         console.error(`Нет обработчика жетона id ${skull.id}`);
     }

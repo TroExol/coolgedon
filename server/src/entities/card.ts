@@ -630,21 +630,17 @@ export class Card {
 
   markAsPlayed() {
     if (this.played || this.room.onCurrentTurn.playedCards[this.type]?.find(c => this.theSame(c))) {
-      console.error('Невозможно пометить карту разыгранной: карта была уже разыграна');
-      return;
+      throw new Error('Невозможно пометить карту разыгранной: карта была уже разыграна');
     }
     const owner = this.owner;
     if (!owner) {
-      console.error('Невозможно пометить карту разыгранной: нет владельца');
-      return;
+      throw new Error('Невозможно пометить карту разыгранной: нет владельца');
     }
     if (!owner.theSame(this.room.activePlayer)) {
-      console.error('Невозможно пометить карту разыгранной: владелец не активный игрок');
-      return;
+      throw new Error('Невозможно пометить карту разыгранной: владелец не активный игрок');
     }
     if (this.theSameType(ECardTypes.lawlessnesses)) {
-      console.error('Невозможно пометить карту разыгранной: это беспредел');
-      return;
+      throw new Error('Невозможно пометить карту разыгранной: это беспредел');
     }
 
     const newType = !this.room.onCurrentTurn.playedCards[this.type];

@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 dist/
 /client/webpack-build-stats.json
+nohup.out

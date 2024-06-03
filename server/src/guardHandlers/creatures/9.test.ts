@@ -32,9 +32,8 @@ describe('creatures 9', () => {
 
   test('Разыгрывается и отдает карту из руки', async () => {
     const topCard = otherPlayer.hand[0];
-    topCard.data = { description: 'Из руки', from: 'hand' };
 
-    spyOn(otherPlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topCard] });
+    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
 
     await creature9.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -51,9 +50,8 @@ describe('creatures 9', () => {
     otherPlayer.discard = [...otherPlayer.deck];
     otherPlayer.deck = [];
     const topCard = otherPlayer.discard[0];
-    topCard.data = { description: 'Из сброса', from: 'discard' };
 
-    spyOn(otherPlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topCard] });
+    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
 
     await creature9.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -68,9 +66,8 @@ describe('creatures 9', () => {
 
   test('Разыгрывается и не передает карту', async () => {
     const topCard = otherPlayer.hand[0];
-    topCard.data = { description: 'Из руки', from: 'hand' };
 
-    spyOn(otherPlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [] });
+    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [] });
 
     await creature9.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -84,9 +81,8 @@ describe('creatures 9', () => {
 
   test('Не разыгрывается без атакующего', async () => {
     const topCard = otherPlayer.hand[0];
-    topCard.data = { description: 'Из руки', from: 'hand' };
 
-    spyOn(otherPlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topCard] });
+    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
 
     await creature9.playGuard({ cardAttack, damage: 5 });
 

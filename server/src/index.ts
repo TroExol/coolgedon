@@ -116,6 +116,8 @@ export const eventHandler = async (params: TEventSendFromClientParams, ws?: WebS
       case EEventTypes.playAllCards:
         await playAllCards(room);
         break;
+      case EEventTypes.ping:
+        break;
       default:
         console.error('Неизвестный тип события', event);
     }
@@ -138,50 +140,58 @@ wss.on('connection', function connection(ws) {
 });
 
 setInterval(() => {
-  // Удаление офлайн игроков
-  Object.values(rooms).forEach(room => {
-    room.playersArray.forEach(async player => {
-      if (!room.getWsClient(player.nickname)) {
-        return;
-      }
-      room.wsSendMessageAsync(
-        player.nickname,
-        { event: EEventTypes.ping },
-        { timeoutMs: 3000 },
-      ).catch(error => {
-        delete wsClients[room.name][player.nickname];
-        console.error('Ошибка пинга', error);
+  try {
+    // Удаление офлайн игроков
+    Object.values(rooms).forEach(room => {
+      room.playersArray.forEach(async player => {
+        if (!room.getWsClient(player.nickname)) {
+          return;
+        }
+        room.wsSendMessageAsync(
+          player.nickname,
+          { event: EEventTypes.ping },
+          { timeoutMs: 3000 },
+        ).catch(error => {
+          delete wsClients[room.name][player.nickname];
+          console.error('Ошибка пинга', error);
+        });
       });
     });
-  });
+  } catch (error) {
+    console.error(error);
+  }
 }, 3000);
 
 setInterval(() => {
-  // Удаление запросов, к которым игрок больше не доступен
-  const requests = Object.values(wsRequestDataQueue);
-  for (let i = requests.length - 1; i >= 0; i--) {
-    const {
-      roomName,
-      receiverNickname,
-      reject,
-    } = requests[i];
-    const room = rooms[roomName];
+  try {
+    // Удаление запросов, к которым игрок больше не доступен
+    const requests = Object.values(wsRequestDataQueue);
+    for (let i = requests.length - 1; i >= 0; i--) {
+      const {
+        roomName,
+        receiverNickname,
+        reject,
+      } = requests[i];
+      const room = rooms[roomName];
 
-    if (!room?.getWsClient(receiverNickname)) {
-      reject(new Error('Пользователь не находится в игре'));
+      if (!room?.getWsClient(receiverNickname)) {
+        reject(new Error('Пользователь не находится в игре'));
+      }
     }
+
+    // Удаление пустых комнат, если с момента последнего запроса прошло больше 5 минут
+    Object.values(rooms).forEach(room => {
+      const lastLogTime = new Date(room.logs.slice(-1)[0]?.date).getTime();
+      const curTime = new Date().getTime();
+      if (!Object.values(wsClients[room.name]).length
+          // Прошло больше 5 минут
+          && (Number.isNaN(lastLogTime) || (curTime - lastLogTime) - 5 * 60 * 1000 < 0)) {
+        delete rooms[room.name];
+        delete wsClients[room.name];
+        delete wsRequestDataQueue[room.name];
+      }
+    });
+  } catch (error) {
+    console.error(error);
   }
-
-  // Удаление пустых комнат, если с момента последнего запроса прошло больше 5 минут
-  Object.values(rooms).forEach(room => {
-    const lastLogTime = new Date(room.logs.slice(-1)[0]?.date).getTime();
-    const curTime = new Date().getTime();
-    if (!Object.values(wsClients[room.name]).length
-    // Прошло больше 5 минут
-      && (Number.isNaN(lastLogTime) || (curTime - lastLogTime) - 5 * 60 * 1000 < 0)) {
-      delete rooms[room.name];
-      delete wsClients[room.name];
-      delete wsRequestDataQueue[room.name];
-    }
-  });
 }, 5 * 60 * 1000);

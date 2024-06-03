@@ -130,6 +130,12 @@ export class Player {
 
     this.hp = 20;
 
+    if (giveSkull) {
+      const skull = this.room.skulls.slice(-1)[0];
+      this.takeSkull(skull, this.room.skulls);
+      void skull.play({ attacker });
+    }
+
     if (!attacker) {
       this.room.logEvent(`Игрок ${this.nickname} умер`);
       this.room.sendInfo();
@@ -137,12 +143,6 @@ export class Player {
     }
 
     this.room.logEvent(`Игрок ${attacker.nickname} убил игрока ${this.nickname}`);
-
-    if (giveSkull) {
-      const skull = this.room.skulls.slice(-1)[0];
-      this.takeSkull(skull, this.room.skulls);
-      void skull.play({ attacker });
-    }
 
     const otherPlayers = this.room.getPlayersExceptPlayer(attacker);
 
@@ -446,7 +446,7 @@ export class Player {
       data: {
         modalType: EModalTypes.skulls,
         select: true,
-        skulls,
+        skulls: skulls.map(skull => skull.format()),
         count: totalCount,
         variants,
         title,

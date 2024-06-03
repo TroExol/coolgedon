@@ -2,11 +2,6 @@ import type { TPlayCardHandler } from 'Type/events/playCard';
 
 import { toPlayerVariant } from 'Helpers';
 
-interface TCardData {
-  description: string;
-  from: 'hand' | 'discard';
-}
-
 const handler: TPlayCardHandler = async ({
   room,
   card,
@@ -40,6 +35,11 @@ const handler: TPlayCardHandler = async ({
       }),
   ];
 
+  if (!cardsToSelect.length) {
+    markAsPlayed?.();
+    return;
+  }
+
   const finalTargets = target
     ? [target]
     : room.getPlayersExceptPlayer(player);
@@ -51,7 +51,11 @@ const handler: TPlayCardHandler = async ({
     canClose: false,
   });
 
-  const finalTarget = room.getPlayer(selected.variant as string);
+  if (typeof selected.variant !== 'string') {
+    return;
+  }
+
+  const finalTarget = room.getPlayer(selected.variant);
 
   if (canGuard) {
     const canAttack = await finalTarget.guard({
@@ -67,7 +71,9 @@ const handler: TPlayCardHandler = async ({
     }
   }
 
-  const from = (selected.cards[0].data as TCardData).from;
+  const from = player.hand.includes(selected.cards[0])
+    ? 'hand'
+    : 'discard';
   selected.cards.forEach(c => {
     c.data = undefined;
   });
