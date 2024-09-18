@@ -19,6 +19,7 @@
       "Store/*": ["./src/stores/*"],
       "Service/*": ["./src/services/*"],
       "Hook/*": ["./src/hooks/*"],
+      "Service": ["./src/services/index.ts"],
       "Store": ["./src/stores/index.ts"],
       "Helpers": ["./src/helpers.ts"]
     },

@@ -22,7 +22,26 @@ export const ContactModal: FC = observer(() => (
       Сообщить об ошибке на GitHub
     </a>
     <p>
-      или напишите на почту zeidxol@gmail.com
+      Написать в Telegram
+      {' '}
+      <a
+        href="https://t.me/troexol"
+        rel="noreferrer"
+        target="_blank"
+      >
+        troexol
+      </a>
+    </p>
+    <p>
+      Написать на почту
+      {' '}
+      <a
+        href="mailto:zeidxol@gmail.com"
+        rel="noreferrer"
+        target="_blank"
+      >
+        zeidxol@gmail.com
+      </a>
     </p>
   </div>
 ));

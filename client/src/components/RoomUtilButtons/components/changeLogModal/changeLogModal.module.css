@@ -1,0 +1,23 @@
+.container {
+  max-width: 800px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+
+    & > li {
+      list-style: disc;
+    }
+  }
+
+  & > h2 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+  }
+}

@@ -9,6 +9,17 @@ import type { Prop } from 'Entity/prop';
 import type { Player } from 'Entity/player';
 import type { Card } from 'Entity/card';
 
+export function getProcessArg(name: string): string | undefined {
+  const processArgs = process.argv.slice(2);
+  const index = processArgs.indexOf(name);
+
+  if (index === -1) {
+    return;
+  }
+
+  return processArgs[index + 1];
+}
+
 export function shuffleArray<T>(array: T[]): T[] {
   const newArray = [...array];
   let currentIndex = newArray.length;

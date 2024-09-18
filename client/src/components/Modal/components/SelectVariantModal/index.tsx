@@ -7,7 +7,7 @@ import { observer } from 'mobx-react-lite';
 import stylesModal from 'Component/Modal/Modal.module.css';
 import { Button } from 'Component/Button';
 
-import styles from './SelectFromListModal.module.css';
+import styles from './SelectVariantModal.module.css';
 
 interface TProps {
   list: TVariant[],
@@ -15,7 +15,7 @@ interface TProps {
   title?: string,
 }
 
-export const SelectFromListModal: FC<TProps> = observer(({
+export const SelectVariantModal: FC<TProps> = observer(({
   title,
   list,
   onConfirm,

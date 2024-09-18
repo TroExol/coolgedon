@@ -20,6 +20,12 @@ body {
   font-size: 22px;
 }
 
+a, a:link, a:visited {
+  text-underline-position: under;
+  text-decoration: underline;
+  color: white;
+}
+
 @media (max-width: 1500px) {
   #root {
     flex-direction: column;

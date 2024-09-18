@@ -1,4 +1,4 @@
-import { EEventTypes, EModalTypes } from '@coolgedon/shared';
+import { EEventTypes } from '@coolgedon/shared';
 
 import type { TPlayCardHandler } from 'Type/events/playCard';
 
@@ -18,16 +18,11 @@ const handler: TPlayCardHandler = async ({
   player.heal(topCard.getTotalCost(player));
   markAsPlayed?.();
 
-  room.wsSendMessage({
-    event: EEventTypes.showModal,
-    data: {
-      modalType: EModalTypes.cards,
-      cards: [topCard.format()],
-      title: 'Верхняя карта вашей колоды',
-      canClose: true,
-      select: false,
-    },
-  }, [player]);
+  room.emitToPlayers([player], EEventTypes.showModalCards, {
+    cards: [topCard.format()],
+    title: 'Верхняя карта вашей колоды',
+    canClose: true,
+  });
 };
 
 exports.default = handler;

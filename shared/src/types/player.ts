@@ -17,4 +17,5 @@ export interface TPlayer {
   props: TProp[];
   skulls: TSkull[];
   victoryPoints: number | undefined;
+  isOnline: boolean;
 }

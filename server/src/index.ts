@@ -1,197 +1,218 @@
-import type { WebSocket } from 'ws';
-import type { TEventSendFromClientParams } from '@coolgedon/shared';
+import { Server } from 'socket.io';
+import { EEventTypes, type TClientToServerEvents, type TServerToClientEvents } from '@coolgedon/shared';
 
-import { WebSocketServer } from 'ws';
-import { EEventTypes } from '@coolgedon/shared';
-
-import type { Room } from 'Entity/room';
-
-import {
-  getCardInFromClient,
-  getCardsInFromClient,
-  getPropInFromClient,
-  getPropsInFromClient,
-} from 'Helpers';
-import { reset } from 'Event/reset';
+import { getCardInFromClient, getProcessArg, getPropInFromClient } from 'Helpers';
+import { removeRoom } from 'Event/removeRoom';
 import { removePlayer } from 'Event/removePlayer';
 import { playProp } from 'Event/playProp';
 import { simplePlayCard } from 'Event/playCard';
 import { playAllCards } from 'Event/playAllCards';
 import { joinPlayer } from 'Event/joinPlayer';
 import { endTurn } from 'Event/endTurn';
-import { disconnect } from 'Event/disconnect';
-import { cancelSelectStartCards } from 'Event/cancelSelectStartCards';
 import { buyShopCard } from 'Event/buyShopCard';
 import { buyLegendCard } from 'Event/buyLegendCard';
 import { buyFamiliarCard } from 'Event/buyFamiliarCard';
 import { buyCrazyMagicCard } from 'Event/buyCrazyMagicCard';
-import { rooms, wsClients, wsRequestDataQueue } from 'Entity/room';
+import { Room, rooms } from 'Entity/room';
 
-const wss = new WebSocketServer({
-  port: 4001,
+const localhost = getProcessArg('--local') === 'true';
+
+const io = new Server<TClientToServerEvents, TServerToClientEvents>({
+  cors: {
+    origin: localhost ? '*' : 'https://toexol.ru',
+    methods: ['GET', 'POST'],
+  },
+  cleanupEmptyChildNamespaces: true,
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 0.5 * 60 * 1000,
+    skipMiddlewares: false,
+  },
 });
 
-export const eventHandler = async (params: TEventSendFromClientParams, ws?: WebSocket) => {
-  try {
-    const {
-      data,
-      event,
-      requestId,
-      roomName,
-    } = params;
+// Неймспейс для всех комнат
+const roomsNamespace = io.of(/^\/room-.+$/);
 
-    const room: Room | undefined = rooms[roomName];
+roomsNamespace.use((socket, next) => {
+  // Неймспейс для конкретной комнаты
+  const roomNamespace = socket.nsp;
+  const roomName = roomNamespace.name.match(/(?<=room-).+/)?.[0];
 
-    if (requestId && wsRequestDataQueue[requestId]) {
-      wsRequestDataQueue[requestId].resolve(data);
-    }
+  if (!roomName) {
+    next(new Error('Не указано имя комнаты'));
+    return;
+  }
 
-    if (!event) {
+  const nickname = socket.handshake.query.nickname;
+
+  if (typeof nickname !== 'string' || !nickname) {
+    next(new Error('Не указан никнейм'));
+    return;
+  }
+
+  const roomExists = !!rooms[roomName];
+
+  if (!roomExists) {
+    rooms[roomName] = new Room(roomNamespace, roomName, nickname);
+  }
+
+  if (!roomExists) {
+    next();
+    return;
+  }
+
+  const room = rooms[roomName];
+
+  if (room.gameEnded) {
+    next(new Error('Игра окончена'));
+    return;
+  }
+
+  if (room.getSocketClient(nickname)) {
+    next(new Error('Пользователь с таким никнеймом уже в игре'));
+    return;
+  }
+
+  if (room.countConnectedPlayers >= 5) {
+    next(new Error('Игроков уже 5'));
+    return;
+  }
+
+  next();
+});
+
+// socket уникален для каждого клиента
+roomsNamespace.on('connection', async socket => {
+  const roomName = socket.nsp.name.match(/(?<=room-).+/)?.[0] as string;
+  const nickname = socket.handshake.query.nickname as string;
+  const room = rooms[roomName];
+  room.addPlayerSocket(nickname, socket);
+
+  socket.use((_, next) => {
+    if (!rooms[roomName]) {
+      next(new Error('Комната не найдена'));
       return;
     }
 
-    switch (event) {
-      case EEventTypes.joinPlayer:
-        if (!ws) {
-          break;
-        }
-        await joinPlayer({
-          room, roomName, wss, ws, ...data,
-        });
-        break;
-      case EEventTypes.cancelSelectStartCards: {
-        const familiars = getCardsInFromClient(data.familiars, room.familiars);
-        const props = getPropsInFromClient(data.props, room.props);
-        cancelSelectStartCards({ room, familiars, props });
-        break;
-      }
-      case EEventTypes.removePlayer:
-        removePlayer({ room, ...data });
-        break;
-      case EEventTypes.buyShopCard: {
-        const card = getCardInFromClient(data.card, room.shop);
-        if (!card) {
-          break;
-        }
-        await buyShopCard({ room, card });
-        break;
-      }
-      case EEventTypes.buyLegendCard:
-        buyLegendCard(room);
-        break;
-      case EEventTypes.buyCrazyMagicCard:
-        buyCrazyMagicCard(room);
-        break;
-      case EEventTypes.buyFamiliarCard:
-        buyFamiliarCard(room);
-        break;
-      case EEventTypes.playCard: {
-        const card = getCardInFromClient(data.card, room.activePlayer.hand);
-        if (!card) {
-          break;
-        }
-        await simplePlayCard({ room, card, cardUsedByPlayer: true });
-        break;
-      }
-      case EEventTypes.playProp: {
-        const prop = getPropInFromClient(data.prop, room.activePlayer.props);
-        if (!prop) {
-          break;
-        }
-        await playProp({ room, prop });
-        break;
-      }
-      case EEventTypes.endTurn:
-        await endTurn(room);
-        break;
-      case EEventTypes.disconnect:
-        if (!ws) {
-          break;
-        }
-        disconnect({ room, ws, ...data });
-        break;
-      case EEventTypes.reset:
-        reset(room);
-        break;
-      case EEventTypes.playAllCards:
-        await playAllCards(room);
-        break;
-      case EEventTypes.ping:
-        break;
-      default:
-        console.error('Неизвестный тип события', event);
+    if (room.gameEnded) {
+      next(new Error('Игра окончена'));
+      return;
     }
+
+    next();
+  });
+
+  socket.on('error', console.error);
+
+  socket.on('disconnect', () => {
+    const socketClient = room.getSocketClient(nickname);
+    if (!socketClient) {
+      return;
+    }
+    room.logEvent(`Игрок ${nickname} отключился`);
+    room.removePlayerSocket(nickname);
+    if (!room.countConnectedPlayers) {
+      removeRoom(room);
+    }
+  });
+
+  try {
+    await joinPlayer({ room, nickname });
   } catch (error) {
-    console.error('Ошибка выполнения действия', error);
+    console.error('Ошибка создания игрока', error);
+    socket.disconnect();
+    return;
   }
-};
 
-wss.on('connection', function connection(ws) {
-  ws.on('error', console.error);
-
-  ws.on('message', async data => {
+  socket.on(EEventTypes.removePlayer, param => {
     try {
-      const parsed = JSON.parse(data.toString());
-      await eventHandler(parsed, ws);
+      removePlayer({ room, nickname: param });
     } catch (error) {
-      console.error(error);
+      console.error('Ошибка удаления игрока', error);
+    }
+  });
+  socket.on(EEventTypes.buyLegendCard, () => {
+    try {
+      buyLegendCard(room);
+    } catch (error) {
+      console.error('Ошибка покупки легенды', error);
+    }
+  });
+  socket.on(EEventTypes.buyCrazyMagicCard, () => {
+    try {
+      buyCrazyMagicCard(room);
+    } catch (error) {
+      console.error('Ошибка покупки шальной магии', error);
+    }
+  });
+  socket.on(EEventTypes.buyFamiliarCard, () => {
+    try {
+      buyFamiliarCard(room);
+    } catch (error) {
+      console.error('Ошибка покупки фамильяра', error);
+    }
+  });
+  socket.on(EEventTypes.endTurn, async () => {
+    try {
+      await endTurn(room);
+    } catch (error) {
+      console.error('Ошибка окончания хода', error);
+    }
+  });
+  socket.on(EEventTypes.removeRoom, () => {
+    try {
+      removeRoom(room);
+    } catch (error) {
+      console.error('Ошибка удаления комнаты', error);
+    }
+  });
+  socket.on(EEventTypes.playAllCards, async () => {
+    try {
+      await playAllCards(room);
+    } catch (error) {
+      console.error('Ошибка разыгрывания всех карт', error);
+    }
+  });
+
+  socket.on(EEventTypes.buyShopCard, async param => {
+    try {
+      const card = getCardInFromClient(param, room.shop);
+      if (!card) {
+        return;
+      }
+      await buyShopCard({ room, card });
+    } catch (error) {
+      console.error('Ошибка покупки карты из барахолки', error);
+    }
+  });
+
+  socket.on(EEventTypes.playCard, async param => {
+    try {
+      const card = getCardInFromClient(param, room.activePlayer.hand);
+      if (!card) {
+        return;
+      }
+      await simplePlayCard({ room, card, cardUsedByPlayer: true });
+    } catch (error) {
+      console.error('Ошибка разыгрывания карты', error);
+    }
+  });
+
+  socket.on(EEventTypes.playProp, async param => {
+    try {
+      const prop = getPropInFromClient(param, room.activePlayer.props);
+      if (!prop) {
+        return;
+      }
+      await playProp({ room, prop });
+    } catch (error) {
+      console.error('Ошибка разыгрывания свойства', error);
     }
   });
 });
 
-setInterval(() => {
-  try {
-    // Удаление офлайн игроков
-    Object.values(rooms).forEach(room => {
-      room.playersArray.forEach(async player => {
-        if (!room.getWsClient(player.nickname)) {
-          return;
-        }
-        room.wsSendMessageAsync(
-          player.nickname,
-          { event: EEventTypes.ping },
-          { timeoutMs: 3000 },
-        ).catch(error => {
-          delete wsClients[room.name][player.nickname];
-          console.error('Ошибка пинга', error);
-        });
-      });
-    });
-  } catch (error) {
-    console.error(error);
-  }
-}, 3000);
+io.on('connection', socket => {
+  console.log('io: New client connected');
+  socket.on('error', console.error);
+});
 
-setInterval(() => {
-  try {
-    // Удаление запросов, к которым игрок больше не доступен
-    const requests = Object.values(wsRequestDataQueue);
-    for (let i = requests.length - 1; i >= 0; i--) {
-      const {
-        roomName,
-        receiverNickname,
-        reject,
-      } = requests[i];
-      const room = rooms[roomName];
-
-      if (!room?.getWsClient(receiverNickname)) {
-        reject(new Error('Пользователь не находится в игре'));
-      }
-    }
-
-    // Удаление пустых комнат, если с момента последнего запроса прошло больше 5 минут
-    Object.values(rooms).forEach(room => {
-      const lastLogTime = new Date(room.logs.slice(-1)[0]?.date).getTime();
-      const curTime = new Date().getTime();
-      if (!Object.values(wsClients[room.name]).length
-          // Прошло больше 5 минут
-          && (Number.isNaN(lastLogTime) || (curTime - lastLogTime) - 5 * 60 * 1000 < 0)) {
-        delete rooms[room.name];
-        delete wsClients[room.name];
-        delete wsRequestDataQueue[room.name];
-      }
-    });
-  } catch (error) {
-    console.error(error);
-  }
-}, 5 * 60 * 1000);
+io.listen(4001);

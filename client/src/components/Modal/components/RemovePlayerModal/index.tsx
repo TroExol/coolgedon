@@ -2,7 +2,7 @@ import type { FC } from 'react';
 
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { ws } from 'Service/ws';
+import { services } from 'Service';
 import { EEventTypes } from '@coolgedon/shared';
 
 import { store } from 'Store';
@@ -18,10 +18,11 @@ export const RemovePlayerModal: FC<TProps> = observer(({
   nickname,
 }) => {
   const { modalsStore } = store;
+  const { roomNamespace } = services;
 
   const removePlayer = () => {
     modalsStore.close();
-    ws.sendMessage({ event: EEventTypes.removePlayer, data: { nickname } });
+    roomNamespace.socket.emit(EEventTypes.removePlayer, nickname);
   };
 
   return (

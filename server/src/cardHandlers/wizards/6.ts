@@ -1,4 +1,4 @@
-import { EEventTypes, EModalTypes } from '@coolgedon/shared';
+import { EEventTypes } from '@coolgedon/shared';
 
 import type { TPlayCardHandler } from 'Type/events/playCard';
 import type { Card } from 'Entity/card';
@@ -36,15 +36,10 @@ const handler: TPlayCardHandler = async ({
 
   if (!finalDamage) {
     if (topDeckCard) {
-      room.wsSendMessage({
-        event: EEventTypes.showModal,
-        data: {
-          modalType: EModalTypes.cards,
-          cards: [topDeckCard.format()],
-          title: `Верхняя карта в колоде игрока ${finalTarget.nickname}`,
-          select: false,
-        },
-      }, room.playersArray);
+      room.emitToPlayers(room.playersArray, EEventTypes.showModalCards, {
+        cards: [topDeckCard.format()],
+        title: `Верхняя карта в колоде игрока ${finalTarget.nickname}`,
+      });
     }
     markAsPlayed?.();
     return;
@@ -73,15 +68,10 @@ const handler: TPlayCardHandler = async ({
   });
   markAsPlayed?.();
 
-  room.wsSendMessage({
-    event: EEventTypes.showModal,
-    data: {
-      modalType: EModalTypes.cards,
-      cards: [topDeckCard.format()],
-      title: `Верхняя карта в колоде игрока ${finalTarget.nickname}`,
-      select: false,
-    },
-  }, room.playersArray);
+  room.emitToPlayers(room.playersArray, EEventTypes.showModalCards, {
+    cards: [topDeckCard.format()],
+    title: `Верхняя карта в колоде игрока ${finalTarget.nickname}`,
+  });
 };
 
 exports.default = handler;

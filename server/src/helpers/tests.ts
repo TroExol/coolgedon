@@ -1,6 +1,5 @@
-// noinspection UnnecessaryLocalVariableJS
-
-import type { WebSocketServer } from 'ws';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Namespace } from 'socket.io';
 
 import type { PartialBy } from 'Type/helpers';
 
@@ -24,9 +23,13 @@ export const makeId = () => {
 };
 
 export const createMockRoom = (name: string, adminNickname: string): Room => {
-  const room = new Room({} as WebSocketServer, name, adminNickname);
-  spyOn(room, 'wsSendMessage').mockImplementation(jest.fn);
-  spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => {});
+  const nsp = {
+    emit: fn(),
+    disconnectSockets: fn(),
+  } as object as Namespace;
+  const room = new Room(nsp, name, adminNickname);
+  spyOn(room, 'emitToPlayers').mockImplementation(fn());
+  spyOn(room, 'emitWithAck').mockImplementation((async () => {}) as any);
   return room;
 };
 

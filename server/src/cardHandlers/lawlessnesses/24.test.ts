@@ -34,7 +34,7 @@ describe('lawlessnesses 24', () => {
     spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [card] });
     spyOn(otherPlayer, 'selectCards').mockImplementation(async params => ({ cards: params.cards }));
 
-    await lawlessness24.play({ type: 'lawlessness' });
+    await lawlessness24.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness24.played).toBeFalsy();
     expect(activePlayer.hp).toBe(23);
@@ -49,7 +49,7 @@ describe('lawlessnesses 24', () => {
     activePlayer.hand = [];
     otherPlayer.hand = [];
 
-    await lawlessness24.play({ type: 'lawlessness' });
+    await lawlessness24.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness24.played).toBeFalsy();
     expect(activePlayer.hp).toBe(20);
@@ -66,7 +66,7 @@ describe('lawlessnesses 24', () => {
     spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [] });
     spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [] });
 
-    await lawlessness24.play({ type: 'lawlessness' });
+    await lawlessness24.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness24.played).toBeFalsy();
     expect(activePlayer.hp).toBe(20);

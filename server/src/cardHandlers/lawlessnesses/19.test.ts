@@ -32,7 +32,7 @@ describe('lawlessnesses 19', () => {
     spyOn(room, 'sendInfo').mockImplementation(fn());
     spyOn(room, 'logEvent').mockImplementation(fn());
 
-    await lawlessness19.play({ type: 'lawlessness' });
+    await lawlessness19.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness19.played).toBeFalsy();
     expect(activePlayer.hp).toBe(20);
@@ -46,7 +46,7 @@ describe('lawlessnesses 19', () => {
     spyOn(room, 'sendInfo').mockImplementation(fn());
     spyOn(room, 'logEvent').mockImplementation(fn());
 
-    await lawlessness19.play({ type: 'lawlessness' });
+    await lawlessness19.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness19.played).toBeFalsy();
     expect(activePlayer.hp).toBe(20);

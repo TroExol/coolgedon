@@ -1,6 +1,8 @@
 import type {
   TPlayCardByLawlessnessParams,
-  TPlayGroupAttackParams, TPlayPermanentParams,
+  TPlayGroupAttackParams,
+  TPlayLawlessnessParams,
+  TPlayPermanentParams,
   TSimplePlayCardParams,
 } from 'Type/events/playCard';
 import type { Player } from 'Entity/player';
@@ -30,4 +32,4 @@ export type TPlayParams =
     | { type: 'groupAttack'; params?: Omit<TPlayGroupAttackParams, 'room' | 'card'>; }
     | { type: 'byLawlessness'; params?: Omit<TPlayCardByLawlessnessParams, 'room' | 'card'>; }
     | { type: 'permanent'; params?: Omit<TPlayPermanentParams, 'room' | 'card'>; }
-    | { type: 'lawlessness'; };
+    | { type: 'lawlessness'; params: Omit<TPlayLawlessnessParams, 'room' | 'card'>; };

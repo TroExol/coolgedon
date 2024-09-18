@@ -5,7 +5,7 @@ import React, {
 } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ws } from 'Service/ws';
+import { services } from 'Service';
 import { EEventTypes } from '@coolgedon/shared';
 
 import { store } from 'Store';
@@ -15,6 +15,7 @@ import styles from './TurnButtons.module.css';
 
 export const TurnButtons: FC = observer(() => {
   const { roomStore, modalsStore } = store;
+  const { roomNamespace } = services;
 
   const [loadingNextTurn, setLoadingNextTurn] = useState(false);
   const isActiveMe = roomStore.isActive(roomStore.me);
@@ -24,14 +25,14 @@ export const TurnButtons: FC = observer(() => {
       return;
     }
     setLoadingNextTurn(true);
-    ws.sendMessage({ event: EEventTypes.endTurn });
+    roomNamespace.socket.emit(EEventTypes.endTurn);
   }, [modalsStore.modals.length]);
 
   const playAllCards = useCallback(() => {
     if (!roomStore.activePlayer.hand?.length) {
       return;
     }
-    ws.sendMessage({ event: EEventTypes.playAllCards });
+    roomNamespace.socket.emit(EEventTypes.playAllCards);
   }, [roomStore.activePlayer.hand?.length]);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export const TurnButtons: FC = observer(() => {
 
   return (
     <AnimatePresence initial={false}>
-      {isActiveMe && !loadingNextTurn && roomStore.playersArray.length > 1 && (
+      {!roomStore.gameEnded && isActiveMe && !loadingNextTurn && roomStore.playersArray.length > 1 && (
         <motion.div
           animate={{ opacity: 1 }}
           className={styles.container}

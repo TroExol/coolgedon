@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { cardMap } from 'AvailableCards';
 import { ECardTypes, type TSkull } from '@coolgedon/shared';
 
@@ -676,7 +677,7 @@ describe('Player', () => {
       spyOn(room, 'logEvent');
       spyOn(room, 'sendInfo');
 
-      await activePlayer.removeSkulls([skull1, skull2]);
+      activePlayer.removeSkulls([skull1, skull2]);
       expect(activePlayer.skulls.length).toBe(0);
       expect(room.skulls.length).toBe(2);
       expect(room.logEvent).toHaveBeenLastCalledWith('Игрок activePlayer уничтожил жетонов дохлых колдунов из своей коллекции: 2 шт.');
@@ -693,12 +694,12 @@ describe('Player', () => {
       const card2 = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][2]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedCards: [card], variant: 1 }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [card], variant: 1 }));
 
       const result = await activePlayer.selectCards({ cards: [card, card2], variants: [{ id: 1, value: '1' }] });
       expect(result.cards).toEqual([card]);
       expect(result.variant).toBe(1);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает ответ от клиента, когда карт < count', async () => {
@@ -709,12 +710,12 @@ describe('Player', () => {
       const card2 = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][2]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedCards: [card], variant: 1 }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [card], variant: 1 }));
 
       const result = await activePlayer.selectCards({ cards: [card, card2], variants: [{ id: 1, value: '1' }], count: 3 });
       expect(result.cards).toEqual([card, card2]);
       expect(result.variant).toBe(1);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает ответ от клиента, когда диалоговое окно закрыли', async () => {
@@ -725,12 +726,12 @@ describe('Player', () => {
       const card2 = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][2]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ closed: true }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ closed: true }));
 
       const result = await activePlayer.selectCards({ cards: [card, card2], variants: [{ id: 1, value: '1' }], count: 3 });
       expect(result.cards).toEqual([]);
       expect(result.variant).toBeUndefined();
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -743,11 +744,11 @@ describe('Player', () => {
       const card2 = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][2]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedCards: [card] }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [card] }) as any);
 
       const result = await activePlayer.selectLeftUniqueCardTypes({ cards: [card, card2] });
       expect(result).toEqual([card]);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает ответ от клиента, когда диалоговое окно закрыли', async () => {
@@ -758,11 +759,11 @@ describe('Player', () => {
       const card2 = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][2]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ closed: true }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ closed: true }));
 
       const result = await activePlayer.selectLeftUniqueCardTypes({ cards: [card, card2] });
       expect(result).toBeUndefined();
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -775,11 +776,11 @@ describe('Player', () => {
       const cardAttack = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedCard: card }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCard: card }) as any);
 
       const result = await activePlayer.selectGuardCard({ cardAttack });
       expect(result).toEqual(card);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает ответ от клиента, если окно закрыли', async () => {
@@ -790,11 +791,11 @@ describe('Player', () => {
       const cardAttack = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
       testHelper.giveCardToPlayer(card, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ closed: true }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ closed: true }));
 
       const result = await activePlayer.selectGuardCard({ cardAttack });
       expect(result).toBeUndefined();
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает результат, если карт защиты нет', async () => {
@@ -803,11 +804,11 @@ describe('Player', () => {
       testHelper.addPlayerToRoom(room, activePlayer);
       const cardAttack = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => {});
+      spyOn(room, 'emitWithAck').mockImplementation((async () => {}) as any);
 
       const result = await activePlayer.selectGuardCard({ cardAttack });
       expect(result).toBeUndefined();
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(0);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -819,13 +820,13 @@ describe('Player', () => {
       const skull1 = testHelper.createMockSkull({ room, id: 1 });
       const skull2 = testHelper.createMockSkull({ room, id: 2 });
 
-      const wsSendMessageAsyncSpy = spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedSkulls: [skull1], variant: 1 }));
+      const emitWithAckSpy = spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedSkulls: [skull1], variant: 1 }));
 
       const result = await activePlayer.selectSkulls({ skulls: [skull1, skull2], variants: [{ id: 1, value: '1' }] });
       expect(result.skulls).toEqual([skull1]);
       expect(result.variant).toBe(1);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
-      expect((wsSendMessageAsyncSpy.mock.calls[0][1].data as {skulls: TSkull[]}).skulls).toEqual([
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
+      expect((emitWithAckSpy.mock.calls[0][2] as {skulls: TSkull[]}).skulls).toEqual([
         { id: 1 },
         { id: 2 },
       ]);
@@ -838,12 +839,12 @@ describe('Player', () => {
       const skull1 = testHelper.createMockSkull({ room, id: 1 });
       const skull2 = testHelper.createMockSkull({ room, id: 2 });
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ selectedSkulls: [skull1], variant: 1 }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedSkulls: [skull1], variant: 1 }));
 
       const result = await activePlayer.selectSkulls({ skulls: [skull1, skull2], variants: [{ id: 1, value: '1' }], count: 3 });
       expect(result.skulls).toEqual([skull1, skull2]);
       expect(result.variant).toBe(1);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает ответ от клиента, когда диалоговое окно закрыли', async () => {
@@ -853,12 +854,12 @@ describe('Player', () => {
       const skull1 = testHelper.createMockSkull({ room, id: 1 });
       const skull2 = testHelper.createMockSkull({ room, id: 2 });
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ closed: true }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ closed: true }));
 
       const result = await activePlayer.selectSkulls({ skulls: [skull1, skull2], variants: [{ id: 1, value: '1' }], count: 3 });
       expect(result.skulls).toEqual([]);
       expect(result.variant).toBeUndefined();
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -951,11 +952,11 @@ describe('Player', () => {
       const activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
       testHelper.addPlayerToRoom(room, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ variant: 1 }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ variant: 1 }));
 
       const result = await activePlayer.selectVariant<number>({ variants: [{ id: 1, value: '1' }] });
       expect(result).toBe(1);
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
 
     test('Правильно возвращает ответ, если окно было закрыто', async () => {
@@ -963,11 +964,11 @@ describe('Player', () => {
       const activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
       testHelper.addPlayerToRoom(room, activePlayer);
 
-      spyOn(room, 'wsSendMessageAsync').mockImplementation(async () => ({ closed: true }));
+      spyOn(room, 'emitWithAck').mockImplementation(async () => ({ closed: true }));
 
       const result = await activePlayer.selectVariant<number>({ variants: [{ id: 1, value: '1' }] });
       expect(result).toBeUndefined();
-      expect(room.wsSendMessageAsync).toHaveBeenCalledTimes(1);
+      expect(room.emitWithAck).toHaveBeenCalledTimes(1);
     });
   });
 

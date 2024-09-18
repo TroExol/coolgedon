@@ -8,7 +8,6 @@ import type { Card } from 'Entity/card';
 import * as testHelper from 'Helpers/tests';
 
 import spyOn = jest.spyOn;
-import fn = jest.fn;
 
 describe('treasures 12', () => {
   let room: Room;
@@ -33,7 +32,7 @@ describe('treasures 12', () => {
   test('Разыгрывается и уничтожает карту из руки', async () => {
     const topCard = otherPlayer.hand[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [topCard.format()] }));
 
     await treasure12.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -51,7 +50,7 @@ describe('treasures 12', () => {
     otherPlayer.deck = [];
     const topCard = otherPlayer.discard[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [topCard.format()] }));
 
     await treasure12.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -67,7 +66,7 @@ describe('treasures 12', () => {
   test('Разыгрывается и не уничтожает карту', async () => {
     const topCard = otherPlayer.hand[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [] }));
 
     await treasure12.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 

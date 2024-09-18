@@ -30,7 +30,7 @@ describe('lawlessnesses 4', () => {
     spyOn(activePlayer, 'guard');
     spyOn(otherPlayer, 'guard');
 
-    await lawlessness4.play({ type: 'lawlessness' });
+    await lawlessness4.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness4.played).toBeFalsy();
     expect(activePlayer.hand.length).toBe(5);
@@ -48,7 +48,7 @@ describe('lawlessnesses 4', () => {
     spyOn(activePlayer, 'guard');
     spyOn(otherPlayer, 'guard').mockImplementation(fn()).mockResolvedValue(false);
 
-    await lawlessness4.play({ type: 'lawlessness' });
+    await lawlessness4.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness4.played).toBeFalsy();
     expect(activePlayer.hand.length).toBe(5);
@@ -67,7 +67,7 @@ describe('lawlessnesses 4', () => {
     spyOn(activePlayer, 'guard');
     spyOn(otherPlayer, 'guard');
 
-    await lawlessness4.play({ type: 'lawlessness' });
+    await lawlessness4.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness4.played).toBeFalsy();
     expect(activePlayer.hand.length).toBe(1);
@@ -86,7 +86,7 @@ describe('lawlessnesses 4', () => {
     spyOn(activePlayer, 'guard');
     spyOn(otherPlayer, 'guard');
 
-    await lawlessness4.play({ type: 'lawlessness' });
+    await lawlessness4.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness4.played).toBeFalsy();
     expect(activePlayer.hand.length).toBe(4);

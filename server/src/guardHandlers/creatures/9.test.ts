@@ -8,7 +8,6 @@ import type { Card } from 'Entity/card';
 import * as testHelper from 'Helpers/tests';
 
 import spyOn = jest.spyOn;
-import fn = jest.fn;
 
 describe('creatures 9', () => {
   let room: Room;
@@ -33,7 +32,7 @@ describe('creatures 9', () => {
   test('Разыгрывается и отдает карту из руки', async () => {
     const topCard = otherPlayer.hand[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [topCard.format()] }));
 
     await creature9.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -51,7 +50,7 @@ describe('creatures 9', () => {
     otherPlayer.deck = [];
     const topCard = otherPlayer.discard[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [topCard.format()] }));
 
     await creature9.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -67,7 +66,7 @@ describe('creatures 9', () => {
   test('Разыгрывается и не передает карту', async () => {
     const topCard = otherPlayer.hand[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [] }));
 
     await creature9.playGuard({ cardAttack, attacker: activePlayer, damage: 5 });
 
@@ -82,7 +81,7 @@ describe('creatures 9', () => {
   test('Не разыгрывается без атакующего', async () => {
     const topCard = otherPlayer.hand[0];
 
-    spyOn(room, 'wsSendMessageAsync').mockImplementation(fn()).mockResolvedValue({ selectedCards: [topCard] });
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ selectedCards: [topCard.format()] }));
 
     await creature9.playGuard({ cardAttack, damage: 5 });
 

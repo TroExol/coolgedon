@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ws } from 'Service/ws';
+import { services } from 'Service';
 import { EEventTypes, type TCard } from '@coolgedon/shared';
 
 import { store } from 'Store';
@@ -20,6 +20,7 @@ export const Control: FC = observer(() => {
     modalsStore,
     previewStore,
   } = store;
+  const { roomNamespace } = services;
 
   const onPlayCardClick = (card: TCard) => {
     if (!card) {
@@ -32,13 +33,22 @@ export const Control: FC = observer(() => {
       />);
       return;
     }
-    const onPlayClick = () => {
-      modalsStore.close();
-      ws.sendMessage({ event: EEventTypes.playCard, data: { card } });
-    };
-    modalsStore.show(<PlayCardModal
-      card={card}
-      onConfirm={onPlayClick}
+
+    if (card.canPlay && !roomStore.gameEnded && roomStore.isActive(roomStore.me)) {
+      const onPlayClick = () => {
+        modalsStore.close();
+        roomNamespace.socket.emit(EEventTypes.playCard, card);
+      };
+      modalsStore.show(<PlayCardModal
+        card={card}
+        onConfirm={onPlayClick}
+      />);
+      return;
+    }
+
+    modalsStore.show(<CardsModal
+      cards={[card]}
+      title="Карта контроля"
     />);
   };
 

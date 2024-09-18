@@ -13,7 +13,7 @@ import styles from './SelectGuardCardModal.module.css';
 
 export type TSelectCardsProps = {
   cards: TCard[];
-  onConfirm: (data: { selectedCard?: TCard }) => void;
+  onConfirm: (data: { selectedCard: TCard }) => void;
   title?: string;
   cardAttack: TCard;
   cardsToShow?: TCard[];
@@ -59,7 +59,7 @@ export const SelectGuardCardModal: FC<TSelectCardsProps> = observer(({
         <Button
           className={styles.button}
           disabled={!selectedCard}
-          onClick={() => onConfirm({ selectedCard })}
+          onClick={() => onConfirm({ selectedCard: selectedCard as TCard })}
         >
           Защититься
         </Button>

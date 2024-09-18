@@ -2,8 +2,9 @@ import type { TPlayLawlessnessHandlerParams } from 'Type/events/playCard';
 
 exports.default = async function ({
   room,
+  player,
 }: TPlayLawlessnessHandlerParams) {
-  const rightPlayer = room.getPlayerByPos(room.activePlayer, 'right');
+  const rightPlayer = room.getPlayerByPos(player, 'right');
   if (!rightPlayer) {
     return;
   }

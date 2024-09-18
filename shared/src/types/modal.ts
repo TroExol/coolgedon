@@ -6,42 +6,45 @@ import type { TCard } from './card';
 
 export enum EModalTypes {
   cards = 'cards',
-  endGame = 'endGame',
-  leftUniqueCardTypes = 'leftUniqueCardTypes',
-  list = 'list',
-  playCard = 'playCard',
-  selectStartCards = 'selectStartCards',
+  endGame = 'end-game',
+  leftUniqueCardTypes = 'left-unique-card-types',
+  playCard = 'play-card',
+  selectCards = 'select-cards',
+  selectSkulls = 'select-skulls',
+  selectStartCards = 'select-start-cards',
+  selectVariant = 'select-variant',
   skulls = 'skills',
-  suggestGuard = 'suggestGuard',
+  suggestGuard = 'suggest-guard',
 }
 
-type TModalWithData<T extends EModalTypes, U> = { modalType: T; } & U;
-// type TModalWithoutData<T extends EModalTypes> = { modalType: T; };
-
-export type TModalData<T extends EModalTypes> =
-  T extends EModalTypes.selectStartCards ? { familiars: TCard[]; props: TProp[]; roomName: string; }
-  : T extends EModalTypes.cards ?
-    { cards: TCard[]; title?: string; } & (
-    | { select: true; count: number; variants: TVariant[]; }
-    | { select: false; count?: never; variants?: never; }
-    )
+export type TModalParams<T extends EModalTypes> =
+  { canClose?: boolean; canCollapse?: boolean; } & (
+  T extends EModalTypes.selectStartCards ? { familiars: TCard[]; props: TProp[]; }
+  : T extends EModalTypes.selectCards ? { cards: TCard[]; title?: string; count: number; variants: TVariant[]; }
+  : T extends EModalTypes.cards ? { cards: TCard[]; title?: string; }
   : T extends EModalTypes.playCard ? { card: TCard; }
   : T extends EModalTypes.suggestGuard ? { cards: TCard[]; cardAttack: TCard; cardsToShow?: TCard[]; title?: string; }
   : T extends EModalTypes.leftUniqueCardTypes ? { cards: TCard[]; }
-  : T extends EModalTypes.skulls
-    ? { skulls: TSkull[]; select: boolean; count: number; title?: string; variants: TVariant[]; }
-  : T extends EModalTypes.list ? { title?: string; variants: TVariant[]; }
+  : T extends EModalTypes.selectSkulls ? { skulls: TSkull[]; count: number; title?: string; variants: TVariant[]; }
+  : T extends EModalTypes.selectVariant ? { title?: string; variants: TVariant[]; }
   : T extends EModalTypes.endGame ? { players: TPlayer[]; }
-  : never;
+  : never);
 
-export type TModalParams =
-  { canClose?: boolean; canCollapse?: boolean; requestId?: string; modalType: EModalTypes; } & (
-  | TModalWithData<EModalTypes.selectStartCards, TModalData<EModalTypes.selectStartCards>>
-  | TModalWithData<EModalTypes.cards, TModalData<EModalTypes.cards>>
-  | TModalWithData<EModalTypes.playCard, TModalData<EModalTypes.playCard>>
-  | TModalWithData<EModalTypes.suggestGuard, TModalData<EModalTypes.suggestGuard>>
-  | TModalWithData<EModalTypes.leftUniqueCardTypes, TModalData<EModalTypes.leftUniqueCardTypes>>
-  | TModalWithData<EModalTypes.skulls, TModalData<EModalTypes.skulls>>
-  | TModalWithData<EModalTypes.list, TModalData<EModalTypes.list>>
-  | TModalWithData<EModalTypes.endGame, TModalData<EModalTypes.endGame>>
-  );
+export type TModalResponse<T extends EModalTypes> =
+  T extends EModalTypes.selectStartCards ? { familiar: TCard; prop: TProp; }
+  : T extends EModalTypes.selectCards
+      ? { selectedCards: TCard[]; variant?: number | string; closed?: never }
+        | { closed: true; selectedCards?: never; variant?: never; }
+  : T extends EModalTypes.suggestGuard
+      ? { selectedCard: TCard; closed?: never; }
+        | { selectedCard?: never; closed: true; }
+  : T extends EModalTypes.leftUniqueCardTypes
+      ? { selectedCards: TCard[]; closed?: never; }
+        | { selectedCards?: never; closed: true; }
+  : T extends EModalTypes.selectSkulls
+      ? { selectedSkulls: TSkull[]; variant?: number | string; closed?: never; }
+        | { selectedSkulls?: never; variant?: never; closed: true; }
+  : T extends EModalTypes.selectVariant
+      ? { variant?: TVariant['id']; closed?: never; }
+        | { variant?: never; closed: true; }
+  : never;

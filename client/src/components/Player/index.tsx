@@ -34,6 +34,7 @@ export const Player: FC<TProps> = observer(({
     victoryPoints,
     hasTower,
     hasTowerC,
+    isOnline,
   },
   className,
 }) => {
@@ -57,6 +58,7 @@ export const Player: FC<TProps> = observer(({
         styles.container,
         className,
         {
+          [styles.offline]: !isOnline,
           [styles.active]: roomStore.isActive(nickname),
         },
       )}

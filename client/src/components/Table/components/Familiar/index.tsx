@@ -4,57 +4,58 @@ import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'framer-motion';
 import { services } from 'Service';
-import { ECardTypes, EEventTypes } from '@coolgedon/shared';
+import { EEventTypes } from '@coolgedon/shared';
 
 import { store } from 'Store';
 import { useHeartBeatAnimation } from 'Hook/useHeartBeatAnimation';
-import { getLastElement } from 'Helpers';
 import { CardsModal } from 'Component/Modal/components/CardsModal';
 import { BuyCardModal } from 'Component/Modal/components/BuyCardModal';
 import { Card } from 'Component/Card';
 
-export const Legends: FC = observer(() => {
+export const Familiar: FC = observer(() => {
   const {
-    roomStore,
     modalsStore,
+    roomStore,
     previewStore,
   } = store;
   const { roomNamespace } = services;
 
-  const topLegend = getLastElement(roomStore.legends);
-  const isActiveMe = roomStore.isActive(roomStore.me);
+  const { familiarToBuy } = roomStore.activePlayer;
+  const isMe = roomStore.isMe(roomStore.activePlayer);
+  const controls = useHeartBeatAnimation(familiarToBuy?.id);
 
-  const controls = useHeartBeatAnimation(roomStore.legends.length);
   const onClick = useCallback(() => {
-    if (!topLegend) {
+    if (!familiarToBuy) {
       return;
     }
     if (modalsStore.modals.length) {
       previewStore.show(<CardsModal
-        cards={[topLegend]}
-        title="Карта магазина"
+        cards={[familiarToBuy]}
+        title={isMe
+          ? 'Твой фамильяр'
+          : `Фамильяр игрока ${roomStore.activePlayer.nickname}`}
       />);
       return;
     }
     const onBuyClick = () => {
       modalsStore.close();
-      roomNamespace.socket.emit(EEventTypes.buyLegendCard);
+      roomNamespace.socket.emit(EEventTypes.buyFamiliarCard);
     };
     modalsStore.show(<BuyCardModal
-      card={topLegend}
+      card={familiarToBuy}
       onClick={onBuyClick}
     />);
-  }, [topLegend, modalsStore, previewStore]);
+  }, [familiarToBuy, isMe, modalsStore, roomStore.activePlayer.nickname, previewStore]);
 
-  return (
+  return familiarToBuy && (
     <motion.div animate={controls}>
       <Card
-        count={roomStore.legends.length}
-        disabled={!isActiveMe || (roomStore.activePlayer.totalPower || 0) < (topLegend?.totalCost || 999)}
-        number={topLegend?.number}
+        disabled={!isMe
+          || (roomStore.activePlayer?.totalPower || 0) < (familiarToBuy.totalCost || 999)}
+        number={familiarToBuy.number}
         onClick={onClick}
-        title="Легенды"
-        type={ECardTypes.legends}
+        title="Фамильяр"
+        type={familiarToBuy.type}
       />
     </motion.div>
   );

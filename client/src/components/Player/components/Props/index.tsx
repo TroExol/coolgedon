@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'framer-motion';
-import { ws } from 'Service/ws';
+import { services } from 'Service';
 import { EEventTypes, type TProp } from '@coolgedon/shared';
 
 import { store } from 'Store';
@@ -25,6 +25,7 @@ export const Props: FC<TProps> = observer(({
     roomStore,
     previewStore,
   } = store;
+  const { roomNamespace } = services;
   const { props } = roomStore.getPlayer(nickname);
   const isMe = roomStore.isMe(nickname);
   const isActive = roomStore.isActive(nickname);
@@ -45,7 +46,7 @@ export const Props: FC<TProps> = observer(({
     const onPlayClick = (prop: TProp) => {
       modalsStore.close();
       const onConfirmPlay = () => {
-        ws.sendMessage({ event: EEventTypes.playProp, data: { prop } });
+        roomNamespace.socket.emit(EEventTypes.playProp, prop);
         modalsStore.close();
       };
 

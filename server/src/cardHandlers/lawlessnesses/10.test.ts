@@ -30,7 +30,7 @@ describe('lawlessnesses 10', () => {
     const card = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
     testHelper.giveCardToPlayer(card, activePlayer);
 
-    await lawlessness10.play({ type: 'lawlessness' });
+    await lawlessness10.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness10.played).toBeFalsy();
     expect(activePlayer.hand.length).toBe(6);

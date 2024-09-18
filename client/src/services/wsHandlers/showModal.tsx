@@ -1,93 +1,38 @@
-/* eslint-disable no-use-before-define */
-import type { Modal } from 'Store/modals';
-import type { TModalData, TModalParams } from '@coolgedon/shared';
+import type {
+  EEventTypes,
+  EModalTypes,
+  TModalParams,
+  TServerToClientWithAckEvents,
+} from '@coolgedon/shared';
 
 import React from 'react';
-import { ws } from 'Service/ws';
-import { EModalTypes } from '@coolgedon/shared';
 
 import type { ComponentProp } from 'Type/helperTypes';
 
 import { store } from 'Store';
 import { SkullsModal } from 'Component/Modal/components/SkullsModal';
+import { SelectVariantModal } from 'Component/Modal/components/SelectVariantModal';
 import { SelectStartCardsModal } from 'Component/Modal/components/SelectStartCardsModal';
 import { SelectSkullsAndVariantsModal } from 'Component/Modal/components/SelectSkullsAndVariantsModal';
 import { SelectGuardCardModal } from 'Component/Modal/components/SelectGuardCardModal';
-import { SelectFromListModal } from 'Component/Modal/components/SelectFromListModal';
 import { SelectCardsAndVariantsModal } from 'Component/Modal/components/SelectCardsAndVariantsModal';
 import { PlayCardModal } from 'Component/Modal/components/PlayCardModal';
 import { LeftUniqueCardTypesModal } from 'Component/Modal/components/LeftUniqueCardTypesModal';
 import { EndGameModal } from 'Component/Modal/components/EndGameModal';
 import { CardsModal } from 'Component/Modal/components/CardsModal';
 
-interface TShowModalHandlerParams {
-    requestId: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: TModalParams;
-}
+type TGetSelectStartCardsComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalSelectStartCards]>[1];
+} & TModalParams<EModalTypes.selectStartCards>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function showModalHandler({ requestId, data }: TShowModalHandlerParams) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-  let content: Modal['content'];
-
-  if (data.modalType === EModalTypes.selectStartCards) {
-    content = getSelectStartCardsComponent({ requestId, data });
-  } else if (data.modalType === EModalTypes.cards) {
-    content = getCardsComponent({ requestId, data });
-  } else if (data.modalType === EModalTypes.playCard) {
-    content = getPlayCardComponent({ requestId, data });
-  } else if (data.modalType === EModalTypes.suggestGuard) {
-    content = getSelectGuardCardComponent({ requestId, data });
-  } else if (data.modalType === EModalTypes.leftUniqueCardTypes) {
-    content = getLeftUniqueCardTypesComponent({ requestId, data });
-  } else if (data.modalType === EModalTypes.endGame) {
-    content = getEndGameComponent({ data });
-  } else if (data.modalType === EModalTypes.skulls) {
-    content = getSelectSkullsComponent({ requestId, data });
-  } else if (data.modalType === EModalTypes.list) {
-    content = getSelectFromListComponent({ requestId, data });
-  }
-
-  const onClose = () => {
-    ws.sendMessage({
-      requestId,
-      data: {
-        ...data,
-        closed: true,
-      },
-    });
-  };
-
-  store.modalsStore.show(content, {
-    canClose: data.canClose,
-    canCollapse: data.canCollapse,
-    onClose: requestId
-      ? onClose
-      : undefined,
-  });
-}
-
-interface TGetSelectStartCardsComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.selectStartCards>;
-}
-
-function getSelectStartCardsComponent({
-  requestId,
-  data: {
-    familiars,
-    props,
-    roomName,
-  },
+export function getSelectStartCardsComponent({
+  callback,
+  familiars,
+  props,
 }: TGetSelectStartCardsComponentParams) {
   const onConfirm: ComponentProp<typeof SelectStartCardsModal, 'onConfirm'> = selectedData => {
     store.modalsStore.close(false);
-    ws.sendMessage({
-      requestId,
-      data: selectedData,
-    });
+    callback(selectedData);
   };
 
   return (
@@ -95,75 +40,63 @@ function getSelectStartCardsComponent({
       familiars={familiars}
       onConfirm={onConfirm}
       props={props}
-      roomName={roomName}
     />
   );
 }
 
-interface TGetCardsComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.cards>;
+export function getCardsComponent({
+  cards,
+  title,
+}: TModalParams<EModalTypes.cards>) {
+  return (
+    <CardsModal
+      cards={cards}
+      title={title}
+    />
+  );
 }
 
-function getCardsComponent({
-  requestId,
-  data: {
-    select,
-    cards,
-    count,
-    variants,
-    title,
-  },
-}: TGetCardsComponentParams) {
+type TGetSelectCardsComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalSelectCards]>[1];
+} & TModalParams<EModalTypes.selectCards>;
+
+export function getSelectCardsComponent({
+  callback,
+  cards,
+  count,
+  variants,
+  title,
+}: TGetSelectCardsComponentParams) {
   const onConfirm: ComponentProp<typeof SelectCardsAndVariantsModal, 'onConfirm'> = ({ id, selectedCards }) => {
     store.modalsStore.close(false);
-    ws.sendMessage({
-      requestId,
-      data: {
-        selectedCards,
-        variant: id,
-      },
-    });
+    callback({ selectedCards, variant: id });
   };
 
-  return select
-    ? (
-      <SelectCardsAndVariantsModal
-        cards={cards}
-        countCards={count}
-        list={variants}
-        onConfirm={onConfirm}
-        title={title}
-      />
-    )
-    : (
-      <CardsModal
-        cards={cards}
-        title={title}
-      />
-    );
+  return (
+    <SelectCardsAndVariantsModal
+      cards={cards}
+      countCards={count}
+      list={variants}
+      onConfirm={onConfirm}
+      title={title}
+    />
+  );
 }
 
-interface TGetSelectGuardCardComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.suggestGuard>;
-}
+type TGetSelectGuardCardComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalSuggestGuard]>[1];
+} & TModalParams<EModalTypes.suggestGuard>;
 
-function getSelectGuardCardComponent({
-  requestId,
-  data: {
-    cardAttack,
-    cardsToShow,
-    cards,
-    title,
-  },
+export function getSelectGuardCardComponent({
+  callback,
+  cardAttack,
+  cardsToShow,
+  cards,
+  title,
 }: TGetSelectGuardCardComponentParams) {
   const onConfirm: ComponentProp<typeof SelectGuardCardModal, 'onConfirm'> = selectedData => {
     store.modalsStore.close(false);
-    ws.sendMessage({
-      requestId,
-      data: selectedData,
-    });
+    callback(selectedData);
   };
 
   return (
@@ -177,18 +110,17 @@ function getSelectGuardCardComponent({
   );
 }
 
-interface TGetPlayCardComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.playCard>;
-}
+type TGetPlayCardComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalPlayCard]>[1];
+} & TModalParams<EModalTypes.playCard>;
 
-function getPlayCardComponent({
-  requestId,
-  data: { card },
+export function getPlayCardComponent({
+  callback,
+  card,
 }: TGetPlayCardComponentParams) {
   const onConfirm = () => {
     store.modalsStore.close(false);
-    ws.sendMessage({ requestId, data: { card } });
+    callback();
   };
 
   return (
@@ -199,21 +131,17 @@ function getPlayCardComponent({
   );
 }
 
-interface TGetLeftUniqueCardTypesComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.leftUniqueCardTypes>;
-}
+type TGetLeftUniqueCardTypesComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalLeftUniqueCardTypes]>[1];
+} & TModalParams<EModalTypes.leftUniqueCardTypes>;
 
-function getLeftUniqueCardTypesComponent({
-  requestId,
-  data: { cards },
+export function getLeftUniqueCardTypesComponent({
+  callback,
+  cards,
 }: TGetLeftUniqueCardTypesComponentParams) {
   const onConfirm: ComponentProp<typeof LeftUniqueCardTypesModal, 'onConfirm'> = selectedData => {
     store.modalsStore.close(false);
-    ws.sendMessage({
-      requestId,
-      data: selectedData,
-    });
+    callback(selectedData);
   };
 
   return (
@@ -224,30 +152,22 @@ function getLeftUniqueCardTypesComponent({
   );
 }
 
-interface TGetSelectFromListComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.list>;
-}
+type TGetSelectFromListComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalSelectVariant]>[1];
+} & TModalParams<EModalTypes.selectVariant>;
 
-function getSelectFromListComponent({
-  requestId,
-  data: {
-    variants,
-    title,
-  },
+export function getSelectVariantComponent({
+  callback,
+  variants,
+  title,
 }: TGetSelectFromListComponentParams) {
-  const onConfirm: ComponentProp<typeof SelectFromListModal, 'onConfirm'> = ({ id }) => {
+  const onConfirm: ComponentProp<typeof SelectVariantModal, 'onConfirm'> = ({ id }) => {
     store.modalsStore.close(false);
-    ws.sendMessage({
-      requestId,
-      data: {
-        variant: id,
-      },
-    });
+    callback({ variant: id });
   };
 
   return (
-    <SelectFromListModal
+    <SelectVariantModal
       list={variants}
       onConfirm={onConfirm}
       title={title}
@@ -255,59 +175,51 @@ function getSelectFromListComponent({
   );
 }
 
-interface TGetSelectSkullsComponentParams {
-    requestId: string;
-    data: TModalData<EModalTypes.skulls>;
+export function getSkullsComponent({
+  skulls,
+  title,
+}: TModalParams<EModalTypes.skulls>) {
+  return (
+    <SkullsModal
+      skulls={skulls}
+      title={title}
+    />
+  );
 }
 
-function getSelectSkullsComponent({
-  requestId,
-  data: {
-    select,
-    count,
-    variants,
-    skulls,
-    title,
-  },
+type TGetSelectSkullsComponentParams = {
+  callback: Parameters<TServerToClientWithAckEvents[EEventTypes.showModalSelectSkulls]>[1];
+} & TModalParams<EModalTypes.selectSkulls>;
+
+export function getSelectSkullsComponent({
+  callback,
+  count,
+  variants,
+  skulls,
+  title,
 }: TGetSelectSkullsComponentParams) {
   const onSelect: ComponentProp<typeof SelectSkullsAndVariantsModal, 'onConfirm'> = ({ selectedSkulls, id }) => {
     store.modalsStore.close(false);
-    ws.sendMessage({
-      requestId,
-      data: {
-        selectedSkulls,
-        variant: id,
-      },
+    callback({
+      selectedSkulls,
+      variant: id,
     });
   };
 
-  return select
-    ? (
-      <SelectSkullsAndVariantsModal
-        countSkull={count}
-        list={variants}
-        onConfirm={onSelect}
-        skulls={skulls}
-        title={title}
-      />
-    )
-    : (
-      <SkullsModal
-        skulls={skulls}
-        title={title}
-      />
-    );
+  return (
+    <SelectSkullsAndVariantsModal
+      countSkull={count}
+      list={variants}
+      onConfirm={onSelect}
+      skulls={skulls}
+      title={title}
+    />
+  );
 }
 
-interface TGetEndGameComponentParams {
-  data: TModalData<EModalTypes.endGame>;
-}
-
-function getEndGameComponent({
-  data: {
-    players,
-  },
-}: TGetEndGameComponentParams) {
+export function getEndGameComponent({
+  players,
+}: TModalParams<EModalTypes.endGame>) {
   store.modalsStore.closeAll();
   return (
     <EndGameModal players={players} />

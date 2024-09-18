@@ -28,7 +28,7 @@ describe('lawlessnesses 22', () => {
     activePlayer.discard.push(...activePlayer.hand.splice(-2));
     activePlayer.deck = [];
 
-    await lawlessness22.play({ type: 'lawlessness' });
+    await lawlessness22.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness22.played).toBeFalsy();
     expect(activePlayer.deck.length).toBe(5);
@@ -44,7 +44,7 @@ describe('lawlessnesses 22', () => {
     activePlayer.deck = [];
     activePlayer.hand.splice(-2);
 
-    await lawlessness22.play({ type: 'lawlessness' });
+    await lawlessness22.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness22.played).toBeFalsy();
     expect(activePlayer.deck.length).toBe(0);

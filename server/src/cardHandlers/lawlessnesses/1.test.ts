@@ -32,7 +32,7 @@ describe('lawlessnesses 1', () => {
 
     const playSpy = spyOn(topCard, 'play').mockImplementation(fn()).mockResolvedValue(undefined);
 
-    await lawlessness1.play({ type: 'lawlessness' });
+    await lawlessness1.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness1.played).toBeFalsy();
     expect(playSpy.mock.calls[0][0].type).toBe('groupAttack');
@@ -43,7 +43,7 @@ describe('lawlessnesses 1', () => {
 
     const playSpy = spyOn(Card.prototype, 'play');
 
-    await lawlessness1.play({ type: 'lawlessness' });
+    await lawlessness1.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness1.played).toBeFalsy();
     expect(playSpy).toHaveBeenCalledTimes(1);

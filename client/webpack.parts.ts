@@ -45,6 +45,17 @@ export const loadPage = (): Configuration => ({
   ],
 });
 
+export const loadMD = (): Configuration => ({
+  module: {
+    rules: [
+      {
+        test: /\.md$/i,
+        use: ['html-loader', 'markdown-loader'],
+      },
+    ],
+  },
+});
+
 export const loadCSS = (): Configuration => ({
   module: {
     rules: [
@@ -114,7 +125,7 @@ export const optimizeJS = (): Configuration => ({
   },
 });
 
-export const loadImages = (): Configuration => ({
+export const loadAssets = (): Configuration => ({
   module: {
     rules: [
       {
@@ -164,8 +175,9 @@ export const resolve = (): Configuration => ({
       Service: path.join(__dirname, 'src', 'services'),
       Hook: path.join(__dirname, 'src', 'hooks'),
       Helpers: path.join(__dirname, 'src', 'helpers.ts'),
+      ChangeLog: path.join(__dirname, '..', 'CHANGELOG.md'),
     },
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.md'],
   },
 });
 

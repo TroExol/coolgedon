@@ -34,7 +34,7 @@ describe('lawlessnesses 14', () => {
     spyOn(activePlayer, 'guard').mockImplementation(fn()).mockResolvedValue(true);
     spyOn(otherPlayer, 'guard');
 
-    await lawlessness14.play({ type: 'lawlessness' });
+    await lawlessness14.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness14.played).toBeFalsy();
     expect(activePlayer.activePermanent.length).toBe(0);
@@ -53,7 +53,7 @@ describe('lawlessnesses 14', () => {
     spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [card1] });
     spyOn(activePlayer, 'guard');
 
-    await lawlessness14.play({ type: 'lawlessness' });
+    await lawlessness14.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness14.played).toBeFalsy();
     expect(activePlayer.activePermanent).toEqual([card2]);
@@ -69,7 +69,7 @@ describe('lawlessnesses 14', () => {
 
     spyOn(activePlayer, 'guard').mockImplementation(fn()).mockResolvedValue(false);
 
-    await lawlessness14.play({ type: 'lawlessness' });
+    await lawlessness14.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness14.played).toBeFalsy();
     expect(activePlayer.activePermanent).toEqual([card]);

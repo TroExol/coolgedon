@@ -1,4 +1,4 @@
-import { EEventTypes, EModalTypes } from '@coolgedon/shared';
+import { EEventTypes } from '@coolgedon/shared';
 
 import type { TPlayCardHandler } from 'Type/events/playCard';
 
@@ -39,15 +39,10 @@ const handler: TPlayCardHandler = async ({
   finalTarget.damage({ damage: finalDamage, attacker });
 
   const otherPlayers = room.getPlayersExceptPlayer(finalTarget);
-  room.wsSendMessage({
-    event: EEventTypes.showModal,
-    data: {
-      modalType: EModalTypes.cards,
-      cards: finalTarget.hand.map(handCard => handCard.format()),
-      title: `Карты на руке игрока ${finalTarget.nickname}`,
-      select: false,
-    },
-  }, otherPlayers);
+  room.emitToPlayers(otherPlayers, EEventTypes.showModalCards, {
+    cards: finalTarget.hand.map(handCard => handCard.format()),
+    title: `Карты на руке игрока ${finalTarget.nickname}`,
+  });
 
   markAsPlayed?.();
 };

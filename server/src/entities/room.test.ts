@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { WebSocket, WebSocketServer } from 'ws';
+
+import type { Namespace, Socket } from 'socket.io';
 
 import { cardMap } from 'AvailableCards';
-import { ECardTypes, EEventTypes, EModalTypes } from '@coolgedon/shared';
+import { ECardTypes, EEventTypes } from '@coolgedon/shared';
 
 import type { Player } from 'Entity/player';
 
 import * as testHelper from 'Helpers/tests';
 import { getCardIn } from 'Helpers';
-import { Room, wsClients, wsRequestDataQueue } from 'Entity/room';
+import { Room } from 'Entity/room';
 
 import spyOn = jest.spyOn;
 import restoreAllMocks = jest.restoreAllMocks;
@@ -26,7 +27,7 @@ describe('Room', () => {
   });
 
   test('instance имеет дефолтные значения', () => {
-    const room = new Room({} as WebSocketServer, '1', 'activePlayer');
+    const room = new Room({} as Namespace, '1', 'activePlayer');
 
     expect(room.name).toBe('1');
     expect(room.activeLawlessness).toBeUndefined();
@@ -158,15 +159,11 @@ describe('Room', () => {
       expect(room.gameEnded).toBeTruthy();
       expect(room.sendInfo).toHaveBeenCalledTimes(1);
       expect(room.logEvent).toHaveBeenCalledWith('Игра окончена');
-      expect(room.wsSendMessage).toHaveBeenLastCalledWith({
-        event: EEventTypes.showModal,
-        data: {
-          modalType: EModalTypes.endGame,
-          players: [
-            activePlayer.format(activePlayer),
-            otherPlayer.format(otherPlayer),
-          ],
-        },
+      expect(room.emitToPlayers).toBeCalledWith(room.playersArray, EEventTypes.showModalEndGame, {
+        players: [
+          activePlayer.format(activePlayer),
+          otherPlayer.format(otherPlayer),
+        ],
       });
     });
   });
@@ -218,6 +215,7 @@ describe('Room', () => {
       const countDeckCards = room.deck.length;
 
       await room.fillShop();
+
       expect(room.shop.length).toBe(5);
       expect(room.shop.indexOf(lawlessnesses)).toBe(-1);
       expect(room.shop.indexOf(card)).not.toBe(-1);
@@ -225,23 +223,14 @@ describe('Room', () => {
       expect(room.gameEnded).toBeFalsy();
       expect(room.logEvent).toHaveBeenCalledWith('БЕСПРЕДЕЕЕЛ!!!');
       expect(room.sendInfo).toHaveBeenCalledTimes(2);
-      expect(room.wsSendMessage).toHaveBeenNthCalledWith(4, {
-        event: EEventTypes.showModal,
-        data: {
-          modalType: EModalTypes.cards,
-          cards: [lawlessnesses.format()],
-          select: false,
-        },
-      }, [otherPlayer]);
-      expect(room.wsSendMessageAsync).toHaveBeenLastCalledWith(activePlayer.nickname, {
-        event: EEventTypes.showModal,
-        data: {
-          modalType: EModalTypes.playCard,
-          card: lawlessnesses.format(),
-          canClose: false,
-        },
+      expect(room.emitToPlayers).toHaveBeenCalledWith([otherPlayer], EEventTypes.showModalCards, {
+        cards: [lawlessnesses.format()],
       });
-      expect(lawlessnesses.play).toHaveBeenCalledWith({ type: 'lawlessness' });
+      expect(room.emitWithAck).toHaveBeenLastCalledWith(activePlayer.nickname, EEventTypes.showModalPlayCard, {
+        card: lawlessnesses.format(),
+        canClose: false,
+      });
+      expect(lawlessnesses.play).toHaveBeenCalledWith({ type: 'lawlessness', params: { player: activePlayer } });
     });
 
     test('Пропускается беспредел, если нельзя разыграть', async () => {
@@ -416,27 +405,27 @@ describe('Room', () => {
     });
   });
 
-  describe('getWsClient', () => {
+  describe('getSocketClient', () => {
     test('Корректно возвращает значения', () => {
       const room = testHelper.createMockRoom('1', 'activePlayer');
 
-      expect(room.getWsClient('activePlayer')).toBeUndefined();
+      expect(room.getSocketClient('activePlayer')).toBeUndefined();
 
-      const ws = {} as WebSocket;
-      wsClients['1'] = {};
-      wsClients['1'].activePlayer = ws;
+      const socket = {} as Socket;
+      room.addPlayerSocket('activePlayer', socket);
 
-      expect(room.getWsClient('activePlayer')).toEqual(ws);
+      expect(room.getSocketClient('activePlayer')).toEqual(socket);
 
-      delete wsClients['1'].activePlayer;
-      delete wsClients['1'];
-      expect(room.getWsClient('activePlayer')).toBeUndefined();
+      room.removePlayerSocket('activePlayer');
+      expect(room.getSocketClient('activePlayer')).toBeUndefined();
     });
   });
 
   describe('logEvent', () => {
     test('Корректно записывает логи', () => {
       const room = testHelper.createMockRoom('1', 'activePlayer');
+      const activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
+      testHelper.addPlayerToRoom(room, activePlayer);
 
       const dateSpy = spyOn(Date.prototype, 'toISOString').mockReturnValue('asd');
 
@@ -444,10 +433,11 @@ describe('Room', () => {
       expect(room.logs.length).toBe(1);
       expect(room.logs[0].format().date).toBe('asd');
       expect(room.logs[0].format().msg).toBe('activePlayer');
-      expect(room.wsSendMessage).toHaveBeenCalledWith({
-        event: EEventTypes.sendLogs,
-        data: room.logs.map(log => log.format()),
-      });
+      expect(room.emitToPlayers).toHaveBeenCalledWith(
+        [activePlayer],
+        EEventTypes.sendLogs,
+        room.logs.map(log => log.format()),
+      );
 
       dateSpy.mockRestore();
     });
@@ -501,149 +491,159 @@ describe('Room', () => {
       testHelper.addPlayerToRoom(room, otherPlayer);
 
       room.sendInfo();
-      expect(room.wsSendMessage).toHaveBeenCalledTimes(2);
-      expect(room.wsSendMessage).toHaveBeenNthCalledWith(1, {
-        event: EEventTypes.updateInfo,
-        data: room.format(activePlayer),
-      }, [activePlayer]);
-      expect(room.wsSendMessage).toHaveBeenNthCalledWith(2, {
-        event: EEventTypes.updateInfo,
-        data: room.format(otherPlayer),
-      }, [otherPlayer]);
+      expect(room.emitToPlayers).toHaveBeenCalledTimes(2);
+      expect(room.emitToPlayers).toHaveBeenNthCalledWith(
+        1,
+        [activePlayer],
+        EEventTypes.updateInfo,
+        room.format(activePlayer),
+      );
+      expect(room.emitToPlayers).toHaveBeenNthCalledWith(
+        2,
+        [otherPlayer],
+        EEventTypes.updateInfo,
+        room.format(otherPlayer),
+      );
     });
   });
 
-  describe('wsSendMessage', () => {
+  describe('emitToPlayers', () => {
     let room: Room;
     let activePlayer: Player;
     let otherPlayer: Player;
 
     beforeEach(() => {
       room = testHelper.createMockRoom('1', 'activePlayer');
+      restoreAllMocks();
       activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
       otherPlayer = testHelper.createMockPlayer({ room, nickname: 'otherPlayer' });
       testHelper.addPlayerToRoom(room, activePlayer);
       testHelper.addPlayerToRoom(room, otherPlayer);
-      restoreAllMocks();
-    });
-
-    afterEach(() => {
-      delete wsClients['1'];
+      spyOn(room, 'sendInfo').mockImplementation(fn());
     });
 
     test('Корректно рассылает информацию указанным игрокам', () => {
-      wsClients['1'] = {};
-      const ws = { send: spyOn({ send: () => {} }, 'send') } as any;
-      wsClients['1'].activePlayer = ws;
-      wsClients['1'].otherPlayer = ws;
+      const socket = { emit: fn() } as any;
+      room.addPlayerSocket('activePlayer', socket);
+      room.addPlayerSocket('otherPlayer', socket);
 
-      room.wsSendMessage('msg' as any, [activePlayer, otherPlayer]);
-      expect(ws.send).toHaveBeenCalledTimes(2);
-      expect(ws.send).toHaveBeenNthCalledWith(1, '"msg"');
-      expect(ws.send).toHaveBeenNthCalledWith(2, '"msg"');
-    });
-
-    test('Корректно рассылает информацию всем игрокам', () => {
-      wsClients['1'] = {};
-      const ws = { send: spyOn({ send: () => {} }, 'send') } as any;
-      wsClients['1'].activePlayer = ws;
-      wsClients['1'].otherPlayer = ws;
-
-      room.wsSendMessage('msg' as any);
-      expect(ws.send).toHaveBeenCalledTimes(2);
-      expect(ws.send).toHaveBeenNthCalledWith(1, '"msg"');
-      expect(ws.send).toHaveBeenNthCalledWith(2, '"msg"');
-    });
-
-    test('Корректно рассылает информацию всем вебсокетам', () => {
-      const ws = { send: spyOn({ send: () => {} }, 'send') } as any;
-
-      room.wsSendMessage('msg' as any, [ws, ws]);
-      expect(ws.send).toHaveBeenCalledTimes(2);
-      expect(ws.send).toHaveBeenNthCalledWith(1, '"msg"');
-      expect(ws.send).toHaveBeenNthCalledWith(2, '"msg"');
+      room.emitToPlayers([activePlayer, otherPlayer], 'event' as any, 'msg' as any);
+      expect(socket.emit).toHaveBeenCalledTimes(2);
+      expect(socket.emit).toHaveBeenNthCalledWith(1, 'event', 'msg');
+      expect(socket.emit).toHaveBeenNthCalledWith(2, 'event', 'msg');
     });
   });
 
-  describe('wsSendMessageAsync', () => {
+  describe('countConnectedPlayers', () => {
+    let room: Room;
+    let activePlayer: Player;
+    let otherPlayer: Player;
+
+    beforeEach(() => {
+      room = testHelper.createMockRoom('1', 'activePlayer');
+      restoreAllMocks();
+      activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
+      otherPlayer = testHelper.createMockPlayer({ room, nickname: 'otherPlayer' });
+      testHelper.addPlayerToRoom(room, activePlayer);
+      testHelper.addPlayerToRoom(room, otherPlayer);
+    });
+
+    test('Корректно возвращает кол-во подключений', () => {
+      expect(room.countConnectedPlayers).toBe(0);
+
+      const socket = { emit: fn() } as any;
+      room.addPlayerSocket('activePlayer', socket);
+      room.addPlayerSocket('otherPlayer', socket);
+
+      expect(room.countConnectedPlayers).toBe(2);
+    });
+  });
+
+  describe('emitWithAck', () => {
     let room: Room;
     let activePlayer: Player;
 
     beforeEach(() => {
       room = testHelper.createMockRoom('1', 'activePlayer');
+      restoreAllMocks();
+      spyOn(room, 'sendInfo').mockImplementation(fn());
       activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
       testHelper.addPlayerToRoom(room, activePlayer);
-      restoreAllMocks();
-      spyOn(room, 'wsSendMessage').mockImplementation(fn());
-    });
-
-    afterEach(() => {
-      delete wsClients['1'];
     });
 
     test('Корректно отправляет и получает информацию', async () => {
-      wsClients['1'] = {};
-      const ws = {} as WebSocket;
-      wsClients['1'].activePlayer = ws;
+      let callback: ((res: any) => void) | undefined;
+      const emit = fn().mockImplementation((event, msg, cb) => {
+        callback = cb;
+        cb('answer');
+      });
+      const socket = {
+        emit,
+      } as any;
+      room.addPlayerSocket('activePlayer', socket);
 
-      const receiver = room.wsSendMessageAsync(activePlayer.nickname, { msg: 'msg' } as any);
-      const queue = Object.entries(wsRequestDataQueue)[0];
-      queue[1].resolve('answer');
-      const result = await receiver;
+      const result = await room.emitWithAck('activePlayer', 'event' as any, 'msg' as never);
       expect(result).toBe('answer');
-      expect(queue[1].receiverNickname).toBe(activePlayer.nickname);
-      expect(queue[1].roomName).toBe(room.name);
-      expect(room.wsSendMessage).toHaveBeenCalledWith({ requestId: queue[0], msg: 'msg' }, [ws]);
-    });
-
-    test('Корректно отправляет и получает информацию при reject', async () => {
-      wsClients['1'] = {};
-      const ws = {} as WebSocket;
-      wsClients['1'].activePlayer = ws;
-
-      const receiver = room.wsSendMessageAsync(activePlayer.nickname, { msg: 'msg' } as any);
-      const queue = Object.entries(wsRequestDataQueue)[0];
-      queue[1].reject(new Error('error'));
-      await receiver
-        .then(() => { throw new Error('data'); })
-        .catch(e => {
-          expect(e).toEqual(new Error('error'));
-        });
-      expect(room.wsSendMessage).toHaveBeenCalledWith({ requestId: queue[0], msg: 'msg' }, [ws]);
+      expect(emit).toHaveBeenCalledWith('event', 'msg', callback);
     });
 
     test('Ошибка при истечении таймаута', async () => {
-      wsClients['1'] = {};
-      const ws = {} as WebSocket;
-      wsClients['1'].activePlayer = ws;
+      let callback: ((res: any) => void) | undefined;
+      const emit = fn().mockImplementation((event, msg, cb) => {
+        callback = cb;
+      });
+      const socket = {
+        emit,
+      } as any;
+      room.addPlayerSocket('activePlayer', socket);
 
-      const dateSpy = spyOn(Date.prototype, 'toLocaleString').mockReturnValue('asd');
-
-      const receiver = room.wsSendMessageAsync(activePlayer.nickname, { msg: 'msg' } as any, { timeoutMs: 100 });
-      const queue = Object.entries(wsRequestDataQueue)[0];
+      const receiver = room.emitWithAck(activePlayer.nickname, 'event' as any, 'msg' as never);
+      room.removePlayerSocket('activePlayer');
       await receiver
         .then(() => { throw new Error('data'); })
         .catch(e => {
-          expect(e).toEqual(new Error('asd activePlayer не отвечает'));
+          expect(e).toEqual(new Error('Игрок activePlayer не подключен к игре'));
         });
-      expect(room.wsSendMessage).toHaveBeenCalledWith({ requestId: queue[0], msg: 'msg' }, [ws]);
-
-      dateSpy.mockRestore();
+      expect(emit).toHaveBeenCalledWith('event', 'msg', callback);
     });
 
-    test('Ошибка, если нет вебсокета у пользователя', async () => {
-      const dateSpy = spyOn(Date.prototype, 'toLocaleString').mockReturnValue('asd');
+    test('Ошибка при истечении таймаута, если игрок переподключился', async () => {
+      let callback: ((res: any) => void) | undefined;
+      const emit = fn().mockImplementation((event, msg, cb) => {
+        callback = cb;
+      });
+      const socket = {
+        id: 1,
+        emit,
+      } as any;
+      room.addPlayerSocket('activePlayer', socket);
 
-      const receiver = room.wsSendMessageAsync(activePlayer.nickname, { msg: 'msg' } as any);
+      const receiver = room.emitWithAck(activePlayer.nickname, 'event' as any, 'msg' as never);
+
+      room.removePlayerSocket('activePlayer');
+      const emitNew = fn().mockImplementation((event, msg, cb) => {
+        callback = cb;
+      });
+      const socketNew = {
+        id: 2,
+        emit: emitNew,
+      } as any;
+      room.addPlayerSocket('activePlayer', socketNew);
+
       await receiver
         .then(() => { throw new Error('data'); })
         .catch(e => {
-          expect(e).toEqual(new Error('asd activePlayer не подключен к серверу'));
+          expect(e).toEqual(new Error('Игрок activePlayer не подключен к игре'));
         });
-      expect(Object.entries(wsRequestDataQueue).length).toBe(0);
-      expect(room.wsSendMessage).toHaveBeenCalledTimes(0);
+      expect(emit).toHaveBeenCalledWith('event', 'msg', callback);
+    });
 
-      dateSpy.mockRestore();
+    test('Ошибка, если нет подключения у пользователя', async () => {
+      await room.emitWithAck(activePlayer.nickname, 'event' as any, 'msg' as never)
+        .then(() => { throw new Error('data'); })
+        .catch(e => {
+          expect(e).toEqual(new Error('Игрок activePlayer не подключен к игре'));
+        });
     });
   });
 

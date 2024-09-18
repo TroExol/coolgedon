@@ -478,7 +478,7 @@ describe('playCard', () => {
         default: handlerMock,
       }));
 
-      await playLawlessness({ room, card });
+      await playLawlessness({ room, card, player: activePlayer });
 
       expect(card.playing).toBeFalsy();
       expect(handlerMock).toHaveBeenCalledTimes(1);
@@ -497,7 +497,7 @@ describe('playCard', () => {
         default: handlerMock,
       }));
 
-      await playLawlessness({ room, card });
+      await playLawlessness({ room, card, player: activePlayer });
 
       expect(handlerMock).toHaveBeenCalledTimes(0);
 
@@ -513,7 +513,7 @@ describe('playCard', () => {
         default: handlerMock,
       }));
 
-      await playLawlessness({ room, card });
+      await playLawlessness({ room, card, player: activePlayer });
 
       expect(handlerMock).toHaveBeenCalledTimes(0);
 
@@ -528,7 +528,7 @@ describe('playCard', () => {
         default: handlerMock,
       }));
 
-      await playLawlessness({ room, card });
+      await playLawlessness({ room, card, player: activePlayer });
 
       expect(handlerMock).toHaveBeenCalledTimes(0);
       expect(consoleErrorSpy).toHaveBeenCalledWith(

@@ -30,7 +30,7 @@ describe('lawlessnesses 9', () => {
   });
 
   test('Разыгрывается', async () => {
-    await lawlessness9.play({ type: 'lawlessness' });
+    await lawlessness9.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness9.played).toBeFalsy();
     expect(otherPlayer.hand.length).toBe(7);
@@ -41,7 +41,7 @@ describe('lawlessnesses 9', () => {
   test('Защитился', async () => {
     spyOn(otherPlayer, 'guard').mockImplementation(fn()).mockResolvedValue(false);
 
-    await lawlessness9.play({ type: 'lawlessness' });
+    await lawlessness9.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness9.played).toBeFalsy();
     expect(otherPlayer.hand.length).toBe(5);

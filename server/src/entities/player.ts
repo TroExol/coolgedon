@@ -1,24 +1,24 @@
-import type { TPlayer, TVariant } from '@coolgedon/shared';
-
 import { cardMap } from 'AvailableCards';
-import { ECardTypes, EEventTypes, EModalTypes } from '@coolgedon/shared';
+import {
+  ECardTypes,
+  EEventTypes,
+  type TPlayer,
+  type TVariant,
+} from '@coolgedon/shared';
 
 import type {
   TDamageParams,
   TGuardParams,
   TSelectCardsParams,
   TSelectCardsResult,
-  TSelectCardsWsResult,
   TSelectGuardCardParams,
   TSelectGuardCardResult,
-  TSelectGuardCardWsResult, TSelectLeftUniqueCardTypesParams, TSelectLeftUniqueCardTypesWsResult,
+  TSelectLeftUniqueCardTypesParams,
   TSelectSkullsParams,
   TSelectSkullsResult,
-  TSelectSkullsWsResult,
   TSelectTargetParams,
   TSelectVariantParams,
   TSelectVariantResult,
-  TSelectVariantWsResult,
 } from 'Type/entities/player';
 import type { Room } from 'Entity/room';
 
@@ -210,6 +210,7 @@ export class Player {
       props: this.props.map(prop => prop.format()),
       skulls: this.skulls.map(skull => skull.format()),
       victoryPoints: this.theSame(forPlayer) ? this.victoryPoints : undefined,
+      isOnline: !!this.room.getSocketClient(this.nickname),
     };
   }
 
@@ -353,17 +354,12 @@ export class Player {
     const totalCount = count < cards.length
       ? count
       : 0;
-    const data = await this.room.wsSendMessageAsync<TSelectCardsWsResult>(this.nickname, {
-      event: EEventTypes.showModal,
-      data: {
-        modalType: EModalTypes.cards,
-        select: true,
-        cards: cards.map(card => card.format()),
-        count: totalCount,
-        variants,
-        title,
-        canClose,
-      },
+    const data = await this.room.emitWithAck(this.nickname, EEventTypes.showModalSelectCards, {
+      cards: cards.map(card => card.format()),
+      count: totalCount,
+      variants,
+      title,
+      canClose,
     });
 
     if (data.closed) {
@@ -390,15 +386,11 @@ export class Player {
     if (!guardCards.length) {
       return;
     }
-    const data = await this.room.wsSendMessageAsync<TSelectGuardCardWsResult>(this.nickname, {
-      event: EEventTypes.showModal,
-      data: {
-        modalType: EModalTypes.suggestGuard,
-        cardAttack: cardAttack.format(),
-        cardsToShow: cardsToShow?.map(card => card.format()),
-        cards: guardCards.map(card => card.format()),
-        title,
-      },
+    const data = await this.room.emitWithAck(this.nickname, EEventTypes.showModalSuggestGuard, {
+      cardAttack: cardAttack.format(),
+      cardsToShow: cardsToShow?.map(card => card.format()),
+      cards: guardCards.map(card => card.format()),
+      title,
     });
 
     if (data.closed) {
@@ -412,13 +404,9 @@ export class Player {
     cards,
     canClose,
   }: TSelectLeftUniqueCardTypesParams): Promise<Card[] | undefined> {
-    const data = await this.room.wsSendMessageAsync<TSelectLeftUniqueCardTypesWsResult>(this.nickname, {
-      event: EEventTypes.showModal,
-      data: {
-        modalType: EModalTypes.leftUniqueCardTypes,
-        cards: cards.map(handCard => handCard.format()),
-        canClose,
-      },
+    const data = await this.room.emitWithAck(this.nickname, EEventTypes.showModalLeftUniqueCardTypes, {
+      cards: cards.map(handCard => handCard.format()),
+      canClose,
     });
 
     if (data.closed) {
@@ -441,17 +429,12 @@ export class Player {
     const totalCount = count < skulls.length
       ? count
       : 0;
-    const data = await this.room.wsSendMessageAsync<TSelectSkullsWsResult>(this.nickname, {
-      event: EEventTypes.showModal,
-      data: {
-        modalType: EModalTypes.skulls,
-        select: true,
-        skulls: skulls.map(skull => skull.format()),
-        count: totalCount,
-        variants,
-        title,
-        canClose,
-      },
+    const data = await this.room.emitWithAck(this.nickname, EEventTypes.showModalSelectSkulls, {
+      skulls: skulls.map(skull => skull.format()),
+      count: totalCount,
+      variants,
+      title,
+      canClose,
     });
 
     if (data.closed) {
@@ -498,21 +481,17 @@ export class Player {
     title,
     canClose = true,
   }: TSelectVariantParams): Promise<TSelectVariantResult<T>> {
-    const data = await this.room.wsSendMessageAsync<TSelectVariantWsResult<T>>(this.nickname, {
-      event: EEventTypes.showModal,
-      data: {
-        modalType: EModalTypes.list,
-        variants,
-        title,
-        canClose,
-      },
+    const data = await this.room.emitWithAck(this.nickname, EEventTypes.showModalSelectVariant, {
+      variants,
+      title,
+      canClose,
     });
 
-    if (data.closed) {
+    if (data.closed || data.variant === undefined) {
       return;
     }
 
-    return data.variant;
+    return data.variant as T;
   }
 
   shuffleDiscardToDeck() {
@@ -578,6 +557,8 @@ export class Player {
       } else {
         card.ownerNickname = this.nickname;
       }
+      card.played = false;
+      card.playing = false;
       // Получаем чужую или покупаем карту для активного игрока
       if (this.theSame(this.room.activePlayer)
           && from !== this.deck

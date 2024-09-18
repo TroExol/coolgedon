@@ -1,9 +1,8 @@
 import type { FC } from 'react';
+import type { TCard, TProp } from '@coolgedon/shared';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ws } from 'Service/ws';
-import { EEventTypes, type TCard, type TProp } from '@coolgedon/shared';
 
 import stylesModal from 'Component/Modal/Modal.module.css';
 import { Button } from 'Component/Button';
@@ -15,42 +14,16 @@ import { SelectCardsModal } from '../SelectCardsModal';
 interface TProps {
   familiars: TCard[];
   props: TProp[];
-  roomName: string;
   onConfirm: ({ prop, familiar }: {prop: TProp, familiar: TCard}) => void;
 }
 
 export const SelectStartCardsModal: FC<TProps> = observer(({
   familiars,
   props,
-  roomName,
   onConfirm,
 }) => {
   const [selectedFamiliar, setSelectedFamiliar] = useState<TCard>();
   const [selectedProp, setSelectedProp] = useState<TProp>();
-
-  useEffect(() => {
-    const onCloseWindow = () => {
-      ws.sendMessage({
-        event: EEventTypes.cancelSelectStartCards,
-        data: {
-          familiars,
-          props,
-        },
-        roomName,
-      });
-    };
-    window.addEventListener('beforeunload', onCloseWindow);
-    const interval = setInterval(
-      () => ws.sendMessage({ event: EEventTypes.ping }),
-      10000,
-    );
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('beforeunload', onCloseWindow);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div className={styles.container}>

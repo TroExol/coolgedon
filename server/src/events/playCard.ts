@@ -192,11 +192,12 @@ export const playPermanent = async ({
 export const playLawlessness = async ({
   room,
   card,
+  player,
 }: TPlayLawlessnessParams) => {
   const logCardError = (error: unknown) => console.error(`Ошибка разыгрывания беспредела type: ${card.type} number: ${card.number}`, error);
 
   try {
-    if (!room.activePlayer || room.gameEnded) {
+    if (!player || room.gameEnded) {
       return;
     }
     if (!card.theSameType(ECardTypes.lawlessnesses)) {
@@ -214,7 +215,7 @@ export const playLawlessness = async ({
     }
 
     const handler = require(pathHandler).default as (data: TPlayLawlessnessHandlerParams) => Promise<void>;
-    await handler({ room, card });
+    await handler({ room, card, player });
 
     room.removeActiveLawlessness();
   } catch (error) {

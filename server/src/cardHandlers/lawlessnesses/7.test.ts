@@ -36,7 +36,7 @@ describe('lawlessnesses 7', () => {
     spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [card1] });
     spyOn(otherPlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topOtherPlayerDeckCard] });
 
-    await lawlessness7.play({ type: 'lawlessness' });
+    await lawlessness7.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness7.played).toBeFalsy();
     expect(activePlayer.hp).toBe(15);
@@ -54,7 +54,7 @@ describe('lawlessnesses 7', () => {
     spyOn(activePlayer, 'guard').mockImplementation(fn()).mockResolvedValue(false);
     spyOn(otherPlayer, 'guard').mockImplementation(fn()).mockResolvedValue(false);
 
-    await lawlessness7.play({ type: 'lawlessness' });
+    await lawlessness7.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness7.played).toBeFalsy();
     expect(activePlayer.deck.length).toBe(5);
@@ -78,7 +78,7 @@ describe('lawlessnesses 7', () => {
     spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [card1] });
     spyOn(otherPlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [card2] });
 
-    await lawlessness7.play({ type: 'lawlessness' });
+    await lawlessness7.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness7.played).toBeFalsy();
     expect(activePlayer.discard.length).toBe(0);
@@ -100,7 +100,7 @@ describe('lawlessnesses 7', () => {
     spyOn(activePlayer, 'selectCards');
     spyOn(otherPlayer, 'selectCards');
 
-    await lawlessness7.play({ type: 'lawlessness' });
+    await lawlessness7.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness7.played).toBeFalsy();
     expect(activePlayer.discard.length).toBe(0);

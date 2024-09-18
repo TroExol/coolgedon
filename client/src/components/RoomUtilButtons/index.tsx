@@ -7,6 +7,7 @@ import { store } from 'Store';
 import { onEnter } from 'Helpers';
 import { RulesModal } from 'Component/RoomUtilButtons/components/rulesModal';
 import { ContactModal } from 'Component/RoomUtilButtons/components/contactModal';
+import { ChangeLogModal } from 'Component/RoomUtilButtons/components/changeLogModal';
 import { ClearRoomModal } from 'Component/Modal/components/ClearRoomModal';
 import { Button } from 'Component/Button';
 
@@ -18,6 +19,11 @@ export const RoomUtilButtons: FC = observer(() => {
 
   const onShowRules = useCallback(() => {
     const componentToShow = (<RulesModal />);
+    previewStore.show(componentToShow);
+  }, [previewStore]);
+
+  const onShowChangeLog = useCallback(() => {
+    const componentToShow = (<ChangeLogModal />);
     previewStore.show(componentToShow);
   }, [previewStore]);
 
@@ -50,6 +56,12 @@ export const RoomUtilButtons: FC = observer(() => {
           onKeyDown={onEnter(onShowContact)}
         >
           Контакты
+        </Button>
+        <Button
+          onClick={onShowChangeLog}
+          onKeyDown={onEnter(onShowChangeLog)}
+        >
+          Обновления
         </Button>
         <div
           className={styles.buttonRoomName}

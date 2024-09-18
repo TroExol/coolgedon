@@ -1,4 +1,4 @@
-import type { TCard, TSkull, TVariant } from '@coolgedon/shared';
+import type { TVariant } from '@coolgedon/shared';
 
 import type { Skull } from 'Entity/skull';
 import type { Player } from 'Entity/player';
@@ -11,11 +11,6 @@ export interface TSelectGuardCardParams {
 }
 
 export type TSelectGuardCardResult = Card | undefined;
-
-export interface TSelectGuardCardWsResult {
-    selectedCard: TCard;
-    closed?: boolean;
-}
 
 export interface TDamageParams {
     attacker?: Player;
@@ -45,12 +40,6 @@ export interface TSelectCardsResult {
     variant?: number | string;
 }
 
-export interface TSelectCardsWsResult {
-    selectedCards: TCard[];
-    variant?: number | string;
-    closed?: boolean;
-}
-
 export interface TSelectSkullsParams {
     skulls: Skull[];
     variants: TVariant[];
@@ -64,12 +53,6 @@ export interface TSelectSkullsResult {
     variant?: number | string;
 }
 
-export interface TSelectSkullsWsResult {
-    selectedSkulls: TSkull[];
-    variant?: number | string;
-    closed?: boolean;
-}
-
 export interface TSelectVariantParams {
     variants: TVariant[];
     title?: string;
@@ -77,11 +60,6 @@ export interface TSelectVariantParams {
 }
 
 export type TSelectVariantResult<T extends TVariant['id']> = T | undefined;
-
-export interface TSelectVariantWsResult<T> {
-    variant?: T;
-    closed?: boolean;
-}
 
 export interface TSelectTargetParams {
     targetsToSelect?: Player[];
@@ -93,9 +71,4 @@ export interface TSelectTargetParams {
 export interface TSelectLeftUniqueCardTypesParams {
     cards: Card[];
     canClose?: boolean;
-}
-
-export interface TSelectLeftUniqueCardTypesWsResult {
-    selectedCards: TCard[];
-    closed?: boolean;
 }

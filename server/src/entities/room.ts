@@ -1,24 +1,29 @@
-import type { WebSocket, WebSocketServer } from 'ws';
-import type { TPlayer } from '@coolgedon/shared';
-import type { TEventSendFromServerParams } from '@coolgedon/shared';
-import type { TRoom } from '@coolgedon/shared';
+import type { EventParams } from 'socket.io/dist/typed-events';
+import type { Namespace } from 'socket.io';
+import type { Socket } from 'socket.io';
 
 import { v4 as uuidv4 } from 'uuid';
 import { getAvailableCards } from 'AvailableCards';
-import { ECardTypes, EEventTypes, EModalTypes } from '@coolgedon/shared';
+import {
+  ECardTypes,
+  EEventTypes,
+  type TClientToServerEvents,
+  type TPlayer,
+  type TRoom,
+  type TServerToClientEvents,
+  type TServerToClientWithAckEvents,
+  type TServerToClientWithoutAckEvents,
+} from '@coolgedon/shared';
 
-import type { TFillShopParams, TWsRequestQueueValue } from 'Type/entities/room';
+import type { ExtractedValue } from 'Type/helpers';
+import type { TFillShopParams } from 'Type/entities/room';
 import type { Skull } from 'Entity/skull';
 import type { Prop } from 'Entity/prop';
+import type { Player } from 'Entity/player';
 import type { Card } from 'Entity/card';
 
-import { shuffleArray } from 'Helpers';
-import { Player } from 'Entity/player';
+import { getProcessArg, shuffleArray } from 'Helpers';
 import { Log } from 'Entity/log';
-
-export const wsRequestDataQueue: {[requestId: string]: TWsRequestQueueValue} = {};
-
-export const wsClients: {[roomName: string]: {[playerNickname: string]: WebSocket}} = {};
 
 interface TOnCurrentTurn {
   activatedPermanents: Card[];
@@ -40,9 +45,11 @@ export const getEmptyOnCurrentTurn = (): TOnCurrentTurn => JSON.parse(JSON.strin
 } as TOnCurrentTurn));
 
 export class Room {
-  private activePlayerNickname: string;
-  private adminNickname: string;
+  private readonly nsp: Namespace<TClientToServerEvents, TServerToClientEvents>;
+  private sockets: { [nickname: string]: Socket<TClientToServerEvents, TServerToClientEvents> } = {};
   activeLawlessness?: Card;
+  activePlayerNickname: string;
+  adminNickname: string;
   crazyMagic: Card[];
   deck: Card[];
   familiars: Card[];
@@ -65,11 +72,10 @@ export class Room {
   sluggishStick: Card[];
   wasLawlessnessesOnCurrentTurn = false;
 
-  readonly wss: WebSocketServer;
-
-  constructor(wss: WebSocketServer, name: string, adminNickname: string) {
+  constructor(nsp: Namespace<TClientToServerEvents, TServerToClientEvents>, name: string, adminNickname: string) {
     const availableCards = getAvailableCards(this);
 
+    this.nsp = nsp;
     this.name = name;
     this.activePlayerNickname = adminNickname;
     this.adminNickname = adminNickname;
@@ -92,7 +98,11 @@ export class Room {
       ...availableCards.wizards,
     ]);
     void this.fillShop({ canLawlessnesses: false });
-    this.wss = wss;
+  }
+
+  addPlayerSocket(nickname: string, socket: ExtractedValue<typeof this.sockets>) {
+    this.sockets[nickname] = socket;
+    this.sendInfo();
   }
 
   changeActivePlayer(player: Player | string) {
@@ -115,6 +125,46 @@ export class Room {
     }
   }
 
+  close() {
+    this.nsp.disconnectSockets();
+  }
+
+  emitToPlayers<T extends keyof TServerToClientWithoutAckEvents>(
+    players: Player[],
+    event: T,
+    ...params: EventParams<TServerToClientWithoutAckEvents, T>
+  ) {
+    players.forEach(player => this.getSocketClient(player.nickname)?.emit(event, ...params));
+  }
+
+  async emitWithAck<T extends keyof TServerToClientWithAckEvents>(
+    nickname: string,
+    event: T,
+    params: EventParams<TServerToClientWithAckEvents, T>[0],
+  ): Promise<Parameters<EventParams<TServerToClientWithAckEvents, T>[1]>[0]> {
+    return new Promise((resolve, reject) => {
+      if (!this.getSocketClient(nickname)) {
+        reject(new Error(`Игрок ${nickname} не подключен к игре`));
+        return;
+      }
+      const socketId = this.getSocketClient(nickname)?.id;
+
+      const interval = setInterval(() => {
+        const socket = this.getSocketClient(nickname);
+        if (!socket || socket.id !== socketId) {
+          clearInterval(interval);
+          reject(new Error(`Игрок ${nickname} не подключен к игре`));
+        }
+      }, 500);
+      const callback: (response: Parameters<EventParams<TServerToClientWithAckEvents, T>[1]>[0]) => void = response => {
+        clearInterval(interval);
+        resolve(response);
+      };
+      const args = [params, callback] as Parameters<TServerToClientEvents[T]>;
+      this.getSocketClient(nickname)?.emit(event, ...args);
+    });
+  }
+
   endGame() {
     if (!this.playersArray.length) {
       return;
@@ -122,13 +172,9 @@ export class Room {
     this.gameEnded = true;
     this.logEvent('Игра окончена');
     this.sendInfo();
-    this.wsSendMessage({
-      event: EEventTypes.showModal,
-      data: {
-        modalType: EModalTypes.endGame,
-        players: [...this.playersArray.map(player => player.format(player))]
-          .sort((p1, p2) => p2.victoryPoints! - p1.victoryPoints!),
-      },
+    this.emitToPlayers(this.playersArray, EEventTypes.showModalEndGame, {
+      players: [...this.playersArray.map(player => player.format(player))]
+        .sort((p1, p2) => p2.victoryPoints! - p1.victoryPoints!),
     });
   }
 
@@ -163,23 +209,29 @@ export class Room {
         this.sendInfo();
         this.activeLawlessness = card;
         const otherPlayers = this.getPlayersExceptPlayer(this.activePlayer);
-        this.wsSendMessage({
-          event: EEventTypes.showModal,
-          data: {
-            modalType: EModalTypes.cards,
-            cards: [card.format()],
-            select: false,
-          },
-        }, otherPlayers);
-        await this.wsSendMessageAsync(this.activePlayer.nickname, {
-          event: EEventTypes.showModal,
-          data: {
-            modalType: EModalTypes.playCard,
-            card: card.format(),
-            canClose: false,
-          },
+        this.emitToPlayers(otherPlayers, EEventTypes.showModalCards, {
+          cards: [card.format()],
         });
-        await card.play({ type: 'lawlessness' });
+        let playPressed = false;
+        let playerToPlayLawlessness = this.activePlayer;
+        while (!playPressed) {
+          try {
+            await this.emitWithAck(playerToPlayLawlessness.nickname, EEventTypes.showModalPlayCard, {
+              card: card.format(),
+              canClose: false,
+            });
+            await card.play({ type: 'lawlessness', params: { player: playerToPlayLawlessness } });
+            playPressed = true;
+          } catch (error) {
+            const otherPlayer = this.getPlayerByPos(playerToPlayLawlessness, 'left');
+            if (!otherPlayer || otherPlayer === this.activePlayer) {
+              console.error('Ошибка при отправке уведомления о беспределе: игроки закончились');
+              break;
+            }
+            console.error('Ошибка при отправке уведомления о беспределе: ', error);
+            playerToPlayLawlessness = otherPlayer;
+          }
+        }
         continue;
       }
 
@@ -192,13 +244,17 @@ export class Room {
       }
       countAddedCards++;
     }
+    if (!this.deck.length) {
+      this.endGame();
+      return;
+    }
     if (countAddedCards) {
       this.sendInfo();
     }
   }
 
   format(forPlayer: Player): TRoom {
-    return {
+    let formatted = {
       activeLawlessness: this.activeLawlessness?.format(),
       activePlayerNickname: this.activePlayerNickname,
       adminNickname: this.adminNickname,
@@ -220,18 +276,24 @@ export class Room {
       skulls: this.skulls.map(card => card.format()),
       crazyMagic: this.crazyMagic.map(card => card.format(this.activePlayer)),
       sluggishStick: this.sluggishStick.map(card => card.format()),
-
-      // debug
-      // onCurrentTurn: {
-      //   activatedPermanents: this.onCurrentTurn.activatedPermanents.map(card => card.format()),
-      //   powerWasted: this.onCurrentTurn.powerWasted,
-      //   additionalPower: this.onCurrentTurn.additionalPower,
-      //   playedCards: Object.values(this.onCurrentTurn.playedCards).flatMap(cards => cards.map(card => card.format())),
-      //   usedCards: Object.values(this.onCurrentTurn.usedCards).flatMap(cards => cards.map(card => card.format())),
-      //   boughtOrReceivedCards: Object.values(this.onCurrentTurn.boughtOrReceivedCards)
-      //     .flatMap(cards => cards.map(card => card.format())),
-      // },
     };
+
+    if (getProcessArg('--debug') === 'true') {
+      formatted = {
+        ...formatted,
+        onCurrentTurn: {
+          activatedPermanents: this.onCurrentTurn.activatedPermanents.map(card => card.format()),
+          powerWasted: this.onCurrentTurn.powerWasted,
+          additionalPower: this.onCurrentTurn.additionalPower,
+          playedCards: Object.values(this.onCurrentTurn.playedCards).flatMap(cards => cards.map(card => card.format())),
+          usedCards: Object.values(this.onCurrentTurn.usedCards).flatMap(cards => cards.map(card => card.format())),
+          boughtOrReceivedCards: Object.values(this.onCurrentTurn.boughtOrReceivedCards)
+            .flatMap(cards => cards.map(card => card.format())),
+        },
+      } as TRoom & { onCurrentTurn: unknown; };
+    }
+
+    return formatted;
   }
 
   getPlayedCards(type: ECardTypes, number?: number): Card[] {
@@ -291,8 +353,8 @@ export class Room {
     return this.playersArray.filter(p => p.nickname !== player.nickname);
   }
 
-  getWsClient(nickname: string): WebSocket | undefined {
-    return wsClients[this.name]?.[nickname];
+  getSocketClient(nickname: string): ExtractedValue<typeof this.sockets> | undefined {
+    return this.sockets[nickname];
   }
 
   logEvent(msg: string) {
@@ -301,10 +363,7 @@ export class Room {
       date: new Date().toISOString(),
       msg,
     }));
-    this.wsSendMessage({
-      event: EEventTypes.sendLogs,
-      data: this.logs.slice(-50).map(log => log.format()),
-    });
+    this.emitToPlayers(this.playersArray, EEventTypes.sendLogs, this.logs.slice(-50).map(log => log.format()));
   }
 
   removeActiveLawlessness() {
@@ -316,6 +375,11 @@ export class Room {
     this.activeLawlessness = undefined;
   }
 
+  removePlayerSocket(nickname: string) {
+    delete this.sockets[nickname];
+    this.sendInfo();
+  }
+
   async removeShopCards(cards: Card[]) {
     await this.fillShop({ replaceCards: [...cards] });
     this.logEvent(`Удалено карт из магазина: ${cards.length} шт.`);
@@ -323,75 +387,7 @@ export class Room {
 
   sendInfo() {
     this.playersArray.forEach(player => {
-      this.wsSendMessage({
-        event: EEventTypes.updateInfo,
-        data: this.format(player),
-      }, [player]);
-    });
-  }
-
-  wsSendMessage(msg: TEventSendFromServerParams, targets?: Player[] | WebSocket[]) {
-    if (!targets) {
-      this.playersArray.forEach(player => this.getWsClient(player.nickname)?.send(JSON.stringify(msg)));
-      return;
-    }
-    if (targets[0] instanceof Player) {
-      (targets as Player[]).forEach(target => this.getWsClient(target.nickname)?.send(JSON.stringify(msg)));
-    } else {
-      (targets as WebSocket[]).forEach(ws => ws.send(JSON.stringify(msg)));
-    }
-  }
-
-  async wsSendMessageAsync<T>(
-    receiverNickname: string,
-    msg: TEventSendFromServerParams,
-    options?: { timeoutMs?: number; },
-  ): Promise<T> {
-    return new Promise((resolve, reject) => {
-      let timeout: NodeJS.Timeout;
-      const requestId = uuidv4();
-
-      const rejectWrapper = (reason?: Error) => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-        delete wsRequestDataQueue[requestId];
-        reject(reason);
-      };
-      const resolveWrapper = (data: T) => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-        delete wsRequestDataQueue[requestId];
-        resolve(data);
-      };
-
-      try {
-        const wsClient = this.getWsClient(receiverNickname);
-        if (!wsClient) {
-          rejectWrapper(new Error(`${new Date().toLocaleString()} ${receiverNickname} не подключен к серверу`));
-          return;
-        }
-
-        if (options?.timeoutMs) {
-          timeout = setTimeout(() => {
-            rejectWrapper(new Error(`${new Date().toLocaleString()} ${receiverNickname} не отвечает`));
-          }, options.timeoutMs);
-        }
-        wsRequestDataQueue[requestId] = {
-          roomName: this.name,
-          receiverNickname,
-          resolve: resolveWrapper as (data: unknown) => void,
-          reject: rejectWrapper,
-        };
-        this.wsSendMessage({
-          ...msg,
-          requestId,
-        }, [wsClient]);
-      } catch (error) {
-        console.error(`${new Date().toLocaleString()} ${receiverNickname} Необработанная ошибка асинхронного запроса WebSocket`, error);
-        rejectWrapper(error as Error);
-      }
+      this.emitToPlayers([player], EEventTypes.updateInfo, this.format(player));
     });
   }
 
@@ -401,6 +397,10 @@ export class Room {
 
   get admin(): Player {
     return this.getPlayer(this.adminNickname);
+  }
+
+  get countConnectedPlayers(): number {
+    return Object.keys(this.sockets).length;
   }
 
   get playersArray(): Player[] {

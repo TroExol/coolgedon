@@ -13,6 +13,7 @@ import { RemovedLawlessnesses } from 'Component/Table/components/RemovedLawlessn
 import { RemovedCards } from 'Component/Table/components/RemovedCards';
 import { Legends } from 'Component/Table/components/Legends';
 import { FleaMarket } from 'Component/Table/components/FleaMarket';
+import { Familiar } from 'Component/Table/components/Familiar';
 import { Deck } from 'Component/Table/components/Deck';
 import { CrazyMagic } from 'Component/Table/components/CrazyMagic';
 import { Control } from 'Component/Table/components/Control';
@@ -37,6 +38,7 @@ export const Table: FC = observer(() => {
         <h3 className={styles.shopTitle}>Покупка карт</h3>
         <div className={styles.shopCards}>
           <div className={styles.notFleaMarketCards}>
+            <Familiar />
             <Legends />
             <CrazyMagic />
           </div>

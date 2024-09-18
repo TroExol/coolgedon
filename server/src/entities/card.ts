@@ -721,7 +721,7 @@ export class Card {
       case 'simple':
         return simplePlayCard({ ...(data.params || {}), room: this.room, card: this });
       case 'lawlessness':
-        return playLawlessness({ room: this.room, card: this });
+        return playLawlessness({ ...data.params, room: this.room, card: this });
       case 'groupAttack':
         return playGroupAttack({ ...(data.params || {}), room: this.room, card: this });
       case 'byLawlessness':

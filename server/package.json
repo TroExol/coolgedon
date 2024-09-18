@@ -10,7 +10,7 @@
   "scripts": {
     "preinstall": "cd ../shared && yarn build",
     "postinstall": "yarn upgrade @coolgedon/shared --latest",
-    "start:dev": "nodemon -r tsconfig-paths/register src/index.ts",
+    "start:dev": "nodemon -r tsconfig-paths/register src/index.ts --local true --debug true",
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
     "typecheck": "tsc --noEmit",
     "eslint": "eslint src/ --ext .js --ext .ts",
@@ -20,14 +20,13 @@
   },
   "dependencies": {
     "@coolgedon/shared": "file:../shared/dist",
-    "uuid": "^9.0.1",
-    "ws": "^8.16.0"
+    "socket.io": "^4.7.5",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.10",
     "@types/uuid": "^9.0.8",
-    "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "8.2.0",

@@ -23,9 +23,10 @@ const commonConfig: Configuration = merge([
   parts.outputFilenames(),
 
   parts.loadPage(),
+  parts.loadMD(),
   parts.loadCSS(),
   parts.loadFonts(),
-  parts.loadImages(),
+  parts.loadAssets(),
   parts.loadTS(),
 ]);
 

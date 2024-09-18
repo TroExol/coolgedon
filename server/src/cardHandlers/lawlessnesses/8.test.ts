@@ -42,7 +42,7 @@ describe('lawlessnesses 8', () => {
       return { cards: [topDiscardCard] };
     });
 
-    await lawlessness8.play({ type: 'lawlessness' });
+    await lawlessness8.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness8.played).toBeFalsy();
     expect(otherPlayer2.hand.length).toBe(4);
@@ -61,7 +61,7 @@ describe('lawlessnesses 8', () => {
 
     spyOn(otherPlayer2, 'selectCards').mockImplementation(async () => ({ cards: [topDiscardCard] }));
 
-    await lawlessness8.play({ type: 'lawlessness' });
+    await lawlessness8.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness8.played).toBeFalsy();
     expect(otherPlayer2.hand.length).toBe(0);
@@ -76,7 +76,7 @@ describe('lawlessnesses 8', () => {
 
     spyOn(otherPlayer2, 'selectCards').mockImplementation(async () => ({ cards: [topHandCard] }));
 
-    await lawlessness8.play({ type: 'lawlessness' });
+    await lawlessness8.play({ type: 'lawlessness', params: { player: activePlayer } });
 
     expect(lawlessness8.played).toBeFalsy();
     expect(otherPlayer2.hand.length).toBe(4);

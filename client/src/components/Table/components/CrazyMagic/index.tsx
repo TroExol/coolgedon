@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'framer-motion';
-import { ws } from 'Service/ws';
+import { services } from 'Service';
 import { ECardTypes, EEventTypes } from '@coolgedon/shared';
 
 import { store } from 'Store';
@@ -19,6 +19,7 @@ export const CrazyMagic: FC = observer(() => {
     modalsStore,
     previewStore,
   } = store;
+  const { roomNamespace } = services;
 
   const isActive = roomStore.isActive(roomStore.me);
   const topCard = getLastElement(roomStore.crazyMagic);
@@ -39,7 +40,7 @@ export const CrazyMagic: FC = observer(() => {
     }
     const onBuyClick = () => {
       modalsStore.close();
-      ws.sendMessage({ event: EEventTypes.buyCrazyMagicCard });
+      roomNamespace.socket.emit(EEventTypes.buyCrazyMagicCard);
     };
     modalsStore.show(<BuyCardModal
       card={topCard}

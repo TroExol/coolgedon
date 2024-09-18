@@ -57,11 +57,13 @@ export type TPlayCardByLawlessnessHandlerParams =
 export interface TPlayLawlessnessParams {
     room: Room;
     card: Card;
+    player: Player;
 }
 
 export interface TPlayLawlessnessHandlerParams {
     room: Room;
     card: Card;
+    player: Player;
 }
 
 // playPermanent

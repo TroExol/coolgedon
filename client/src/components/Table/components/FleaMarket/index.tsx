@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ws } from 'Service/ws';
+import { services } from 'Service';
 import { EEventTypes, type TCard } from '@coolgedon/shared';
 
 import { store } from 'Store';
@@ -19,6 +19,7 @@ export const FleaMarket: FC = observer(() => {
     modalsStore,
     previewStore,
   } = store;
+  const { roomNamespace } = services;
 
   const isActiveMe = roomStore.isActive(roomStore.me);
 
@@ -35,7 +36,7 @@ export const FleaMarket: FC = observer(() => {
     }
     const onBuyClick = () => {
       modalsStore.close();
-      ws.sendMessage({ event: EEventTypes.buyShopCard, data: { card } });
+      roomNamespace.socket.emit(EEventTypes.buyShopCard, card);
     };
     modalsStore.show(<BuyCardModal
       card={card}

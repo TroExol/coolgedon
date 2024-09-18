@@ -2,8 +2,7 @@ import type { FC, FormEvent } from 'react';
 
 import React, { useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ws } from 'Service/ws';
-import { EEventTypes } from '@coolgedon/shared';
+import { services } from 'Service';
 
 import { store } from 'Store';
 import { Input } from 'Component/Input';
@@ -22,7 +21,7 @@ export const InputNicknameModal: FC = observer(() => {
   const onSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     modalsStore.close();
-    ws.sendMessage({ event: EEventTypes.joinPlayer, data: { nickname }, roomName });
+    services.initRoomNamespace(roomName, nickname);
     localStorage.setItem('nickname', nickname);
   }, [modalsStore, nickname, roomName]);
 
