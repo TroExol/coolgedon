@@ -184,5 +184,9 @@ export class RoomNamespace {
         onClose,
       });
     });
+
+    (window as any).countRooms = () => {
+      this.socket.emit(EEventTypes.countRooms, count => console.log(`Количество активных комнат: ${count}`));
+    };
   }
 }

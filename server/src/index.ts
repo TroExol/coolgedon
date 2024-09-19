@@ -9,6 +9,7 @@ import { simplePlayCard } from 'Event/playCard';
 import { playAllCards } from 'Event/playAllCards';
 import { joinPlayer } from 'Event/joinPlayer';
 import { endTurn } from 'Event/endTurn';
+import { countRooms } from 'Event/countRooms';
 import { buyShopCard } from 'Event/buyShopCard';
 import { buyLegendCard } from 'Event/buyLegendCard';
 import { buyFamiliarCard } from 'Event/buyFamiliarCard';
@@ -206,6 +207,14 @@ roomsNamespace.on('connection', async socket => {
       await playProp({ room, prop });
     } catch (error) {
       console.error('Ошибка разыгрывания свойства', error);
+    }
+  });
+
+  socket.on(EEventTypes.countRooms, async callback => {
+    try {
+      countRooms(callback);
+    } catch (error) {
+      console.error('Ошибка отправки кол-ва комнат', error);
     }
   });
 });

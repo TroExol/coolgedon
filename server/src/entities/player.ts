@@ -653,7 +653,7 @@ export class Player {
 
   get guardCards() {
     return [
-      ...this.hand.filter(card => card.canGuard && !card.permanent),
+      ...this.hand.filter(card => card.canGuard && !card.permanent && !card.tempOwnerNickname),
       ...this.activePermanent.filter(card => card.canGuard),
     ];
   }

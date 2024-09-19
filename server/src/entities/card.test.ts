@@ -811,7 +811,8 @@ describe('Card', () => {
         activePlayer.skulls.push(testHelper.createMockSkull({ room, id: 18 }));
         expect(card.getTotalVictoryPoints(activePlayer)).toBe(0);
         room.gameEnded = true;
-        expect(card.getTotalVictoryPoints(activePlayer)).toBe(4);
+        expect(card.getTotalVictoryPoints(activePlayer)).toBe(2);
+        expect(activePlayer.victoryPoints).toBe(-2);
       });
 
       test('Имеется одна treasures 13', () => {

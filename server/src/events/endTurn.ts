@@ -17,16 +17,40 @@ const discardCard = (player: Player, card: Card) => {
 const returnCardsToOwner = (room: Room) => {
   // Возврат заимствованной карты
   for (let i = room.activePlayer.hand.length - 1; i >= 0; i--) {
-    const handCard = room.activePlayer.hand[i];
-    if (!handCard.tempOwnerNickname || !handCard.ownerNickname) {
+    const card = room.activePlayer.hand[i];
+    if (!card.tempOwnerNickname || !card.ownerNickname) {
       continue;
     }
-    handCard.played = false;
-    handCard.playing = false;
-    handCard.tempOwnerNickname = undefined;
+    card.played = false;
+    card.playing = false;
+    card.tempOwnerNickname = undefined;
     room.activePlayer.hand.splice(i, 1);
-    const owner = room.getPlayer(handCard.ownerNickname);
-    discardCard(owner, handCard);
+    const owner = room.getPlayer(card.ownerNickname);
+    discardCard(owner, card);
+  }
+  for (let i = room.activePlayer.deck.length - 1; i >= 0; i--) {
+    const card = room.activePlayer.deck[i];
+    if (!card.tempOwnerNickname || !card.ownerNickname) {
+      continue;
+    }
+    card.played = false;
+    card.playing = false;
+    card.tempOwnerNickname = undefined;
+    room.activePlayer.deck.splice(i, 1);
+    const owner = room.getPlayer(card.ownerNickname);
+    discardCard(owner, card);
+  }
+  for (let i = room.activePlayer.discard.length - 1; i >= 0; i--) {
+    const card = room.activePlayer.discard[i];
+    if (!card.tempOwnerNickname || !card.ownerNickname) {
+      continue;
+    }
+    card.played = false;
+    card.playing = false;
+    card.tempOwnerNickname = undefined;
+    room.activePlayer.discard.splice(i, 1);
+    const owner = room.getPlayer(card.ownerNickname);
+    discardCard(owner, card);
   }
 };
 

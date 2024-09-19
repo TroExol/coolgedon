@@ -619,9 +619,8 @@ export class Card {
       return 5;
     }
     if (this.room.gameEnded) {
-      const countTreasures13 = forPlayer.getCountCards('activePermanent', ECardTypes.treasures, 13);
-      if (countTreasures13) {
-        return countTreasures13 * forPlayer.skulls.length;
+      if (this.theSameType(ECardTypes.treasures, 13)) {
+        return forPlayer.skulls.length;
       }
     }
 

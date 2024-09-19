@@ -49,10 +49,9 @@ const handler: TPlayCardHandler = async ({
     const canAttack = await finalTarget.guard({
       attacker,
       cardAttack: card,
-      cardsToShow: [topDeckCard],
       title: byLawlessness
-        ? `Беспредел атакует на ${finalDamage} урона, будете защищаться?`
-        : `Игрок ${attacker.nickname} собирается нанести вам ${finalDamage} урона, будете защищаться?`,
+        ? 'Беспредел атакует, будете защищаться?'
+        : `Игрок ${attacker.nickname} собирается атаковать, будете защищаться?`,
       byLawlessness,
       damage: finalDamage,
     });

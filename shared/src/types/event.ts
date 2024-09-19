@@ -9,6 +9,7 @@ export enum EEventTypes {
   buyFamiliarCard = 'buy-familiar-card',
   buyLegendCard = 'buy-legend-card',
   buyShopCard = 'buy-shop-card',
+  countRooms = 'count-rooms',
   endTurn = 'end-turn',
   playAllCards = 'play-all-cards',
   playCard = 'play-card',
@@ -88,4 +89,7 @@ export interface TClientToServerEvents {
   [EEventTypes.endTurn]: () => void;
   [EEventTypes.removeRoom]: () => void;
   [EEventTypes.playAllCards]: () => void;
+  [EEventTypes.countRooms]: (
+    callback: (count: number) => void
+  ) => void;
 }
