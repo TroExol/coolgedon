@@ -55,6 +55,7 @@ export class Player {
   hasTower = false;
   hp = 20;
   nickname: string;
+  playingTower = false;
   props: Prop[];
   skulls: Skull[] = [];
 
@@ -85,7 +86,7 @@ export class Player {
     this.props = [prop];
     this.deck = shuffleArray(startDeck);
 
-    this.fillHand();
+    this.fillHand(false);
   }
 
   activatePermanents() {
@@ -175,7 +176,7 @@ export class Player {
     this.room.sendInfo();
   }
 
-  fillHand() {
+  fillHand(shouldActivatePermanents = true) {
     if (this.hand.length >= 5) {
       return;
     }
@@ -185,7 +186,7 @@ export class Player {
     }
     this.hand.push(...this.deck.splice((5 - this.hand.length) * -1));
 
-    if (this.room.activePlayer && this.theSame(this.room.activePlayer)) {
+    if (shouldActivatePermanents && this.room.activePlayer && this.theSame(this.room.activePlayer)) {
       this.activatePermanents();
     }
   }
@@ -653,7 +654,11 @@ export class Player {
 
   get guardCards() {
     return [
-      ...this.hand.filter(card => card.canGuard && !card.permanent && !card.tempOwnerNickname),
+      ...this.hand.filter(card => card.canGuard
+        && !card.permanent
+        && !card.tempOwnerNickname
+        && !card.played
+        && !card.playing),
       ...this.activePermanent.filter(card => card.canGuard),
     ];
   }

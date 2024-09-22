@@ -16,6 +16,7 @@ export class Prop {
   ownerNickname?: string;
   readonly playable: boolean;
   played = false;
+  playing = false;
   temp = false;
 
   constructor({

@@ -173,6 +173,24 @@ describe('playProp', () => {
       expect(activePlayer.hp).toBe(16);
       expect(room.logEvent).toHaveBeenLastCalledWith('Игрок activePlayer разыграл свойство');
     });
+
+    test('Не разыгрывается дважды при быстром нажатии кнопки', async () => {
+      const prop = testHelper.createMockProp({ room, ...propMap[4] });
+      prop.ownerNickname = activePlayer.nickname;
+      activePlayer.props = [prop];
+
+      await Promise.allSettled([
+        playProp({ room, prop }),
+        playProp({ room, prop }),
+      ]);
+
+      expect(prop.played).toBeTruthy();
+      expect(prop.playing).toBeFalsy();
+      expect(activePlayer.hand.length).toBe(6);
+      expect(activePlayer.deck.length).toBe(4);
+      expect(activePlayer.hp).toBe(16);
+      expect(room.logEvent).toHaveBeenLastCalledWith('Игрок activePlayer разыграл свойство');
+    });
   });
 
   describe('prop 5', () => {

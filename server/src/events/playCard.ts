@@ -14,6 +14,7 @@ import type {
 
 import { legendGroupAttack } from 'CardHandler/legendGroupAttack';
 
+// TODO: перенести все функции в Card
 export const simplePlayCard = async ({
   room,
   card,

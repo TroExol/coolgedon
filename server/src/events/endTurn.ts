@@ -3,8 +3,33 @@ import { ECardTypes } from '@coolgedon/shared';
 import type { Player } from 'Entity/player';
 import type { Card } from 'Entity/card';
 
-import { playTower } from 'Event/playTower';
 import { type Room, getEmptyOnCurrentTurn } from 'Entity/room';
+
+export const playTower = async (room: Room, player: Player) => {
+  try {
+    if (room.gameEnded
+      || !player.hasTower
+      || (!player.deck.length && !player.discard.length)
+      || player.playingTower) {
+      return;
+    }
+    player.playingTower = true;
+
+    player.takeCardsTo('hand', 1, player.deck);
+    const selected = await player.selectCards({
+      cards: player.hand,
+      variants: [{ id: 1, value: 'Сбросить' }],
+      title: 'Сбросьте 1 карту из руки',
+      canClose: false,
+    });
+
+    player.discardCards(selected.cards, 'hand');
+  } catch (error) {
+    console.error('Ошибка разыгрывания башни', error);
+  } finally {
+    player.playingTower = false;
+  }
+};
 
 const discardCard = (player: Player, card: Card) => {
   if (card.theSameType(ECardTypes.familiars, 7)) {
@@ -67,7 +92,7 @@ const resetPlayerCards = (room: Room) => {
     }
   });
   room.activePlayer.hand = [];
-  room.activePlayer.fillHand();
+  room.activePlayer.fillHand(false);
 };
 
 const resetPlayerProps = (room: Room) => {
@@ -76,9 +101,14 @@ const resetPlayerProps = (room: Room) => {
   });
 };
 
-export const endTurn = async (room: Room, removeActivePlayer?: boolean) => {
+export const endTurn = async (room: Room, emitPlayerNickname: string, removeActivePlayer?: boolean) => {
   try {
-    if (!room.activePlayer || room.playersArray.length <= 1 || room.gameEnded) {
+    if (
+      !room.activePlayer
+      || room.playersArray.length <= 1
+      || room.gameEnded
+      || emitPlayerNickname !== room.activePlayer.nickname
+    ) {
       return;
     }
 
@@ -107,7 +137,7 @@ export const endTurn = async (room: Room, removeActivePlayer?: boolean) => {
     room.sendInfo();
 
     if (!removeActivePlayer && prevActivePlayer.hasTower) {
-      await playTower({ room, player: prevActivePlayer });
+      await playTower(room, prevActivePlayer);
     }
   } catch (error) {
     console.error('Ошибка окончания хода', error);

@@ -42,6 +42,23 @@ describe('buyShopCard', () => {
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил карту с барахолки');
   });
 
+  test('Не приобретается карта с барахолки дважды при быстром нажатии кнопки', () => {
+    room.onCurrentTurn.additionalPower = 20;
+
+    buyShopCard({ room, card: shopCard3 });
+    buyShopCard({ room, card: shopCard3 });
+
+    expect(room.onCurrentTurn.additionalPower).toBe(20);
+    expect(room.shop.length).toBe(5);
+    expect(room.shop.indexOf(shopCard3)).toBe(-1);
+    expect(room.onCurrentTurn.powerWasted).toBe(shopCard3.getTotalCost(activePlayer));
+    expect(activePlayer.discard.length).toBe(1);
+    expect(activePlayer.discard.slice(-1)[0]).toEqual(shopCard3);
+    // + 1 в takeCardsTo
+    expect(room.sendInfo).toHaveBeenCalledTimes(2);
+    expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил карту с барахолки');
+  });
+
   test('Приобретается карта с барахолки и кладется в колоду с prop 8', () => {
     room.onCurrentTurn.additionalPower = 20;
     const card1 = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]); // cost 4

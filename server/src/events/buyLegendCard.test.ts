@@ -38,6 +38,20 @@ describe('buyLegendCard', () => {
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил легенду');
   });
 
+  test('Не приобретается легенда дважды при быстром нажатии кнопки', () => {
+    room.onCurrentTurn.additionalPower = 8;
+    buyLegendCard(room);
+    buyLegendCard(room);
+    expect(room.onCurrentTurn.additionalPower).toBe(8);
+    expect(room.legends.length).toBe(countInitialLegends - 1);
+    expect(room.onCurrentTurn.powerWasted).toBe(8);
+    expect(activePlayer.discard.length).toBe(1);
+    expect(activePlayer.discard.slice(-1)[0].type).toBe(ECardTypes.legends);
+    // + 1 в takeCardsTo
+    expect(room.sendInfo).toHaveBeenCalledTimes(2);
+    expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил легенду');
+  });
+
   test('Возвращаются временные свойства при покупке', () => {
     const countInitialPropsInRoom = room.props.length;
     const prop = testHelper.createMockProp(propMap[1]);

@@ -4,12 +4,14 @@ import { ECardTypes } from '@coolgedon/shared';
 import type { Player } from 'Entity/player';
 
 import * as testHelper from 'Helpers/tests';
+import { createMockCard } from 'Helpers/tests';
 import { getLastElement } from 'Helpers';
-import * as playTowerEvent from 'Event/playTower';
-import { endTurn } from 'Event/endTurn';
+import { endTurn, playTower } from 'Event/endTurn';
+import * as endTurnEvent from 'Event/endTurn';
 import { type Room, getEmptyOnCurrentTurn } from 'Entity/room';
 
 import spyOn = jest.spyOn;
+import fn = jest.fn;
 
 describe('endTurn', () => {
   let room: Room;
@@ -26,7 +28,7 @@ describe('endTurn', () => {
 
     spyOn(room, 'logEvent');
     spyOn(room, 'sendInfo');
-    playTowerSpy = spyOn(playTowerEvent, 'playTower').mockImplementation(async () => {});
+    playTowerSpy = spyOn(endTurnEvent, 'playTower').mockImplementation(async () => {});
   });
 
   afterEach(() => {
@@ -36,7 +38,7 @@ describe('endTurn', () => {
   test('Заканчивается ход', async () => {
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -53,7 +55,7 @@ describe('endTurn', () => {
     const hand = [...activePlayer.hand];
     activePlayer.hasTower = true;
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -73,7 +75,7 @@ describe('endTurn', () => {
     activePlayer.hand.push(cardTemp);
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -93,7 +95,7 @@ describe('endTurn', () => {
     topCard.played = true;
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -113,7 +115,7 @@ describe('endTurn', () => {
     topProp.played = true;
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -136,7 +138,7 @@ describe('endTurn', () => {
     ];
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -154,7 +156,7 @@ describe('endTurn', () => {
     room.players = {};
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toBeUndefined();
     hand.forEach(card => {
@@ -171,7 +173,7 @@ describe('endTurn', () => {
     delete room.players.otherPlayer;
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(activePlayer);
     hand.forEach(card => {
@@ -188,7 +190,7 @@ describe('endTurn', () => {
     room.gameEnded = true;
     const hand = [...activePlayer.hand];
 
-    await endTurn(room);
+    await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(activePlayer);
     hand.forEach(card => {
@@ -219,7 +221,7 @@ describe('endTurn', () => {
 
     const hand = [...activePlayer.hand];
 
-    await endTurn(room, true);
+    await endTurn(room, activePlayer.nickname, true);
 
     expect(room.activePlayer).toEqual(otherPlayer);
     hand.forEach(card => {
@@ -234,5 +236,117 @@ describe('endTurn', () => {
     expect(playTowerSpy).toHaveBeenCalledTimes(0);
     expect(prop3.play).toHaveBeenCalledTimes(0);
     expect(room.onCurrentTurn).toEqual(getEmptyOnCurrentTurn());
+  });
+
+  test('Если игрок, закончивший ход, получил в руку постоянку, то она не активируется сразу', async () => {
+    const permanent = createMockCard(room, cardMap[ECardTypes.places][1])!;
+    permanent.ownerNickname = activePlayer.nickname;
+    activePlayer.deck = [permanent];
+
+    await endTurn(room, activePlayer.nickname);
+
+    expect(room.activePlayer).toEqual(otherPlayer);
+    expect(activePlayer.activePermanent.length).toBe(0);
+    expect(activePlayer.hand.length).toBe(5);
+  });
+
+  test('Если игрок не активный, то не может завершить ход', async () => {
+    await endTurn(room, otherPlayer.nickname);
+
+    expect(room.activePlayer).toEqual(activePlayer);
+  });
+
+  test('Не завершает ход дважды, если быстро нажать кнопку', async () => {
+    await Promise.allSettled([
+      endTurn(room, activePlayer.nickname),
+      endTurn(room, activePlayer.nickname),
+    ]);
+
+    expect(room.activePlayer).toEqual(otherPlayer);
+  });
+});
+
+describe('playTower', () => {
+  let room: Room;
+  let activePlayer: Player;
+
+  beforeEach(() => {
+    room = testHelper.createMockRoom('1', 'activePlayer');
+    activePlayer = testHelper.createMockPlayer({ room, nickname: 'activePlayer' });
+    testHelper.addPlayerToRoom(room, activePlayer);
+  });
+
+  test('Разыгрывается', async () => {
+    activePlayer.hasTower = true;
+    const topCard = getLastElement(activePlayer.hand)!;
+
+    spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topCard] });
+
+    await playTower(room, activePlayer);
+
+    expect(activePlayer.selectCards).toHaveBeenCalledTimes(1);
+    expect(activePlayer.discard.length).toBe(1);
+    expect(activePlayer.discard.indexOf(topCard)).not.toBe(-1);
+    expect(activePlayer.deck.length).toBe(4);
+    expect(activePlayer.hand.length).toBe(5);
+    expect(activePlayer.hand.indexOf(topCard)).toBe(-1);
+  });
+
+  test('Не разыгрывается дважды при быстром нажатии кнопки', async () => {
+    activePlayer.hasTower = true;
+    const topCard = getLastElement(activePlayer.hand)!;
+
+    spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topCard] });
+
+    await Promise.allSettled([
+      playTower(room, activePlayer),
+      playTower(room, activePlayer),
+    ]);
+
+    expect(activePlayer.selectCards).toHaveBeenCalledTimes(1);
+    expect(activePlayer.discard.length).toBe(1);
+    expect(activePlayer.discard.indexOf(topCard)).not.toBe(-1);
+    expect(activePlayer.deck.length).toBe(4);
+    expect(activePlayer.hand.length).toBe(5);
+    expect(activePlayer.hand.indexOf(topCard)).toBe(-1);
+  });
+
+  test('Не разыгрывается, если игра окончена', async () => {
+    room.gameEnded = true;
+    activePlayer.hasTower = true;
+
+    spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [] });
+
+    await playTower(room, activePlayer);
+
+    expect(activePlayer.selectCards).toHaveBeenCalledTimes(0);
+    expect(activePlayer.discard.length).toBe(0);
+    expect(activePlayer.deck.length).toBe(5);
+    expect(activePlayer.hand.length).toBe(5);
+  });
+
+  test('Не разыгрывается, если у игрока нет башни', async () => {
+    spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [] });
+
+    await playTower(room, activePlayer);
+
+    expect(activePlayer.selectCards).toHaveBeenCalledTimes(0);
+    expect(activePlayer.discard.length).toBe(0);
+    expect(activePlayer.deck.length).toBe(5);
+    expect(activePlayer.hand.length).toBe(5);
+  });
+
+  test('Не разыгрывается, если у игрока нет сброса и колоды', async () => {
+    activePlayer.hasTower = true;
+    activePlayer.deck = [];
+
+    spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [] });
+
+    await playTower(room, activePlayer);
+
+    expect(activePlayer.selectCards).toHaveBeenCalledTimes(0);
+    expect(activePlayer.discard.length).toBe(0);
+    expect(activePlayer.deck.length).toBe(0);
+    expect(activePlayer.hand.length).toBe(5);
   });
 });

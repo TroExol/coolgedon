@@ -51,6 +51,31 @@ describe('joinPlayer', () => {
     expect(room.logEvent).toHaveBeenCalledWith('Игрок otherPlayer подключился');
   });
 
+  test('Не подключается игрок дважды при быстром нажатии кнопки', async () => {
+    room.familiars = room.familiars.slice(-2);
+    room.props = room.props.slice(-2);
+    const topFamiliar = getLastElement(room.familiars)!;
+    const topProp = getLastElement(room.props)!;
+    spyOn(room, 'emitWithAck').mockImplementation(async () => ({ prop: topProp.format(), familiar: topFamiliar.format() }));
+    const countFamiliars = room.familiars.length;
+    const countProps = room.props.length;
+
+    await Promise.allSettled([
+      joinPlayer({ room, nickname: 'otherPlayer' }),
+      joinPlayer({ room, nickname: 'otherPlayer' }),
+    ]);
+
+    expect(room.players.otherPlayer.nickname).toEqual('otherPlayer');
+    expect(room.players.otherPlayer.familiarToBuy).toEqual(topFamiliar);
+    expect(room.players.otherPlayer.props.indexOf(topProp)).not.toBe(-1);
+    expect(room.playersArray.length).toBe(2);
+    expect(room.familiars.length).toEqual(countFamiliars - 1);
+    expect(room.props.length).toEqual(countProps - 1);
+    expect(room.activePlayer).toEqual(activePlayer);
+    expect(room.sendInfo).toHaveBeenCalledTimes(1);
+    expect(room.logEvent).toHaveBeenCalledWith('Игрок otherPlayer подключился');
+  });
+
   test('Подключается существующий игрок', async () => {
     spyOn(room, 'emitWithAck').mockImplementation((async () => {}) as any);
     const countFamiliars = room.familiars.length;

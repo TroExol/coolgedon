@@ -23,7 +23,7 @@ export const removePlayer = ({ room, nickname }: TRemovePlayerParams) => {
   const leftPlayer = room.getPlayerByPos(playerToRemove, 'left');
   if (leftPlayer) {
     if (room.activePlayer?.nickname === nickname) {
-      void endTurn(room, true);
+      void endTurn(room, room.activePlayerNickname, true);
     }
     if (room.admin.nickname === nickname) {
       room.changeAdmin(leftPlayer);

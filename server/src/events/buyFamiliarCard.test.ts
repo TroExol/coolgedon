@@ -37,6 +37,19 @@ describe('buyFamiliarCard', () => {
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил фамильяра');
   });
 
+  test('Не приобретается фамильяр дважды при быстром нажатии кнопки', () => {
+    room.onCurrentTurn.additionalPower = 6;
+    buyFamiliarCard(room);
+    buyFamiliarCard(room);
+    expect(room.onCurrentTurn.additionalPower).toBe(6);
+    expect(activePlayer.familiarToBuy).toBeNull();
+    expect(room.onCurrentTurn.powerWasted).toBe(6);
+    expect(activePlayer.discard.length).toBe(1);
+    expect(activePlayer.discard.slice(-1)[0]).toEqual(familiar);
+    expect(room.sendInfo).toHaveBeenCalledTimes(1);
+    expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил фамильяра');
+  });
+
   test('Нельзя купить, если не хватает силы', () => {
     room.onCurrentTurn.additionalPower = 2;
     buyFamiliarCard(room);

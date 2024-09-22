@@ -8,16 +8,17 @@ export interface TPlayPropParams {
   card?: Card;
 }
 
+// TODO: перенести в Prop
 export const playProp = async ({
   room,
   prop,
   card,
 }: TPlayPropParams) => {
   try {
-    if (room.gameEnded || prop.played) {
+    if (room.gameEnded || prop.played || prop.playing || !prop.owner || prop.owner !== room.activePlayer) {
       return;
     }
-    const finalPlayer = prop.owner!;
+    const finalPlayer = prop.owner;
 
     switch (prop.id) {
       case 1: {
@@ -53,6 +54,7 @@ export const playProp = async ({
         break;
       }
       case 4:
+        prop.playing = true;
         finalPlayer.damage({ damage: 4 });
         finalPlayer.takeCardsTo('hand', 1, finalPlayer.deck);
         prop.markAsPlayed();
@@ -89,5 +91,7 @@ export const playProp = async ({
     }
   } catch (error) {
     console.error('Ошибка разыгрывания свойства', card, error);
+  } finally {
+    prop.playing = false;
   }
 };

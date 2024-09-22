@@ -10,6 +10,7 @@ export interface TPlaySkullParams {
   attacker?: Player;
 }
 
+// TODO: перенести в Skull
 export const playSkull = async ({
   room,
   attacker,

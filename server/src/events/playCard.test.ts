@@ -69,6 +69,34 @@ describe('playCard', () => {
       restoreAllMocks();
     });
 
+    test('Не разыгрывается карта дважды при быстром нажатии кнопки', async () => {
+      const card = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][3]);
+      testHelper.giveCardToPlayer(card, activePlayer);
+
+      const handlerMock = fn().mockResolvedValue(null);
+      mock('../cardHandlers/creatures/3', () => ({
+        default: handlerMock,
+      }));
+
+      await Promise.allSettled([
+        simplePlayCard({
+          room,
+          card,
+          cardUsedByPlayer: true,
+        }),
+        simplePlayCard({
+          room,
+          card,
+          cardUsedByPlayer: true,
+        }),
+      ]);
+
+      expect(card.playing).toBeFalsy();
+      expect(handlerMock).toHaveBeenCalledTimes(1);
+
+      restoreAllMocks();
+    });
+
     test('Нельзя разыгрывать без активного игрока', async () => {
       const card = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
       testHelper.giveCardToPlayer(card, activePlayer);

@@ -34,6 +34,20 @@ describe('buyCrazyMagicCard', () => {
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил карту шальную магию');
   });
 
+  test('Не приобретается шальная магия дважды при быстром нажатии кнопки', () => {
+    room.onCurrentTurn.additionalPower = 3;
+    buyCrazyMagicCard(room);
+    buyCrazyMagicCard(room);
+    expect(room.onCurrentTurn.additionalPower).toBe(3);
+    expect(room.crazyMagic.length).toBe(15);
+    expect(room.onCurrentTurn.powerWasted).toBe(3);
+    expect(activePlayer.discard.length).toBe(1);
+    expect(activePlayer.discard.slice(-1)[0].type).toBe(ECardTypes.crazyMagic);
+    // + 1 в takeCardsTo
+    expect(room.sendInfo).toHaveBeenCalledTimes(2);
+    expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer купил карту шальную магию');
+  });
+
   test('Нельзя купить, если не хватает силы', () => {
     room.onCurrentTurn.additionalPower = 2;
     buyCrazyMagicCard(room);

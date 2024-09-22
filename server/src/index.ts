@@ -4,8 +4,6 @@ import { EEventTypes, type TClientToServerEvents, type TServerToClientEvents } f
 import { getCardInFromClient, getProcessArg, getPropInFromClient } from 'Helpers';
 import { removeRoom } from 'Event/removeRoom';
 import { removePlayer } from 'Event/removePlayer';
-import { playProp } from 'Event/playProp';
-import { simplePlayCard } from 'Event/playCard';
 import { playAllCards } from 'Event/playAllCards';
 import { joinPlayer } from 'Event/joinPlayer';
 import { endTurn } from 'Event/endTurn';
@@ -131,6 +129,7 @@ roomsNamespace.on('connection', async socket => {
       console.error('Ошибка удаления игрока', error);
     }
   });
+
   socket.on(EEventTypes.buyLegendCard, () => {
     try {
       buyLegendCard(room);
@@ -138,6 +137,7 @@ roomsNamespace.on('connection', async socket => {
       console.error('Ошибка покупки легенды', error);
     }
   });
+
   socket.on(EEventTypes.buyCrazyMagicCard, () => {
     try {
       buyCrazyMagicCard(room);
@@ -145,6 +145,7 @@ roomsNamespace.on('connection', async socket => {
       console.error('Ошибка покупки шальной магии', error);
     }
   });
+
   socket.on(EEventTypes.buyFamiliarCard, () => {
     try {
       buyFamiliarCard(room);
@@ -152,13 +153,15 @@ roomsNamespace.on('connection', async socket => {
       console.error('Ошибка покупки фамильяра', error);
     }
   });
+
   socket.on(EEventTypes.endTurn, async () => {
     try {
-      await endTurn(room);
+      await endTurn(room, nickname);
     } catch (error) {
       console.error('Ошибка окончания хода', error);
     }
   });
+
   socket.on(EEventTypes.removeRoom, () => {
     try {
       removeRoom(room);
@@ -166,6 +169,7 @@ roomsNamespace.on('connection', async socket => {
       console.error('Ошибка удаления комнаты', error);
     }
   });
+
   socket.on(EEventTypes.playAllCards, async () => {
     try {
       await playAllCards(room);
@@ -192,7 +196,7 @@ roomsNamespace.on('connection', async socket => {
       if (!card) {
         return;
       }
-      await simplePlayCard({ room, card, cardUsedByPlayer: true });
+      await card.play({ type: 'simple', params: { cardUsedByPlayer: true } });
     } catch (error) {
       console.error('Ошибка разыгрывания карты', error);
     }
@@ -204,7 +208,7 @@ roomsNamespace.on('connection', async socket => {
       if (!prop) {
         return;
       }
-      await playProp({ room, prop });
+      await prop.play();
     } catch (error) {
       console.error('Ошибка разыгрывания свойства', error);
     }

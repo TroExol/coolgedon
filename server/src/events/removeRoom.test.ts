@@ -25,4 +25,12 @@ describe('removeRoom', () => {
     expect(rooms[room.name]).toBeUndefined();
     expect(room.close).toHaveBeenCalledTimes(1);
   });
+
+  test('Ничего не ломается при нажатии удаления комнаты дважды', () => {
+    removeRoom(room);
+    removeRoom(room);
+
+    expect(rooms[room.name]).toBeUndefined();
+    expect(room.close).toHaveBeenCalledTimes(2);
+  });
 });

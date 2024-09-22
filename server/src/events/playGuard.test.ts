@@ -60,6 +60,40 @@ describe('playGuard', () => {
     restoreAllMocks();
   });
 
+  test('Не разыгрывается защита из руки дважды при быстром нажатии кнопки', async () => {
+    const cardAttack = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
+    const card = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][9]);
+    testHelper.giveCardToPlayer(card, otherPlayer);
+
+    const handlerMock = fn().mockResolvedValue(null);
+    mock('../guardHandlers/creatures/9', () => ({
+      default: handlerMock,
+    }));
+
+    await Promise.allSettled([
+      playGuard({
+        room,
+        card,
+        cardAttack,
+        target: otherPlayer,
+        attacker: activePlayer,
+      }),
+      playGuard({
+        room,
+        card,
+        cardAttack,
+        target: otherPlayer,
+        attacker: activePlayer,
+      }),
+    ]);
+
+    expect(handlerMock).toHaveBeenCalledTimes(1);
+    expect(otherPlayer.hand.indexOf(card)).toBe(-1);
+    expect(otherPlayer.discard.indexOf(card)).not.toBe(-1);
+
+    restoreAllMocks();
+  });
+
   test('Разыгрывается защита из постоянок', async () => {
     const cardAttack = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
     const card = testHelper.createMockCard(room, cardMap[ECardTypes.treasures][2]);

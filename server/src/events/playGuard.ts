@@ -23,16 +23,17 @@ export interface TPlayGuardHandlerParams {
   damage?: number;
 }
 
-export const playGuard = async ({
+// TODO: перенести в Card
+export async function playGuard({
   room,
   attacker,
   target,
   card,
   cardAttack,
   damage,
-}: TPlayGuardParams): Promise<void> => {
+}: TPlayGuardParams): Promise<void> {
   try {
-    if (!room.activePlayer || room.gameEnded) {
+    if (!room.activePlayer || room.gameEnded || card.played || card.playing) {
       return;
     }
 
@@ -44,6 +45,8 @@ export const playGuard = async ({
     if (!fs.existsSync(path.join(__dirname, pathHandler))) {
       throw new Error('Не найден обработчик карты');
     }
+
+    card.playing = true;
 
     const handler: (data: TPlayGuardHandlerParams) => Promise<void> = require(pathHandler).default;
     await handler({
@@ -64,5 +67,7 @@ export const playGuard = async ({
     }
   } catch (error) {
     console.error(`Ошибка разыгрывания карты защиты type ${card.type} number ${card.number}`, error);
+  } finally {
+    card.playing = false;
   }
-};
+}
