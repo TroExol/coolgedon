@@ -21,8 +21,10 @@ export const InputNicknameModal: FC = observer(() => {
   const onSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     modalsStore.close();
-    services.initRoomNamespace(roomName, nickname);
-    localStorage.setItem('nickname', nickname);
+    const formattedNickname = nickname.trim();
+    const formattedRoomName = roomName.trim();
+    services.initRoomNamespace(formattedRoomName, formattedNickname);
+    localStorage.setItem('nickname', formattedNickname);
   }, [modalsStore, nickname, roomName]);
 
   return (

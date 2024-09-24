@@ -38,6 +38,22 @@ describe('spells 9', () => {
     expect(activePlayer.totalPower).toBe(0);
   });
 
+  test('Разыгрывается и берет карты при костеце', async () => {
+    const treasure13 = testHelper.createMockCard(room, cardMap[ECardTypes.treasures][13]);
+    treasure13.ownerNickname = activePlayer.nickname;
+    activePlayer.activePermanent = [treasure13];
+    activePlayer.skulls = [
+      testHelper.createMockSkull({ room, id: 14 }),
+      testHelper.createMockSkull({ room, id: 14 }),
+    ];
+
+    await spell9.play({ type: 'simple', params: { cardUsedByPlayer: true } });
+
+    expect(spell9.played).toBeTruthy();
+    expect(activePlayer.hand.length).toBe(9);
+    expect(activePlayer.totalPower).toBe(0);
+  });
+
   test('Разыгрывается и дает мощь', async () => {
     activePlayer.skulls = [
       testHelper.createMockSkull({ room, id: 14 }),

@@ -29,10 +29,30 @@ export class Prop {
     this.room = room;
   }
 
+  canPlay(): boolean {
+    switch (this.id) {
+      case 1:
+        return !!this.owner?.discard.length;
+      case 2:
+        return true;
+      case 3:
+        return !!this.room.onCurrentTurn.boughtOrReceivedCards.wizards?.length;
+      case 4:
+        return (this.owner?.hp ?? 0) >= 4;
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   format(): TProp {
     return {
       id: this.id,
-      canPlay: this.playable && !this.played,
+      canPlay: this.playable && !this.played && this.canPlay(),
     };
   }
 

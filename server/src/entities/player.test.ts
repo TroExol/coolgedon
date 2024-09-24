@@ -1009,6 +1009,7 @@ describe('Player', () => {
       testHelper.addPlayerToRoom(room, activePlayer);
       testHelper.addPlayerToRoom(room, otherPlayer);
       const card = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
+      card.played = true;
       room.deck.push(card);
 
       spyOn(room, 'sendInfo');
@@ -1018,6 +1019,7 @@ describe('Player', () => {
       activePlayer.takeCardsTo('discard', [card], room.deck);
       expect(activePlayer.discard.indexOf(card)).not.toBe(-1);
       expect(card.ownerNickname).toBe(activePlayer.nickname);
+      expect(card.played).toBeTruthy();
       expect(room.deck.indexOf(card)).toBe(-1);
       expect(room.onCurrentTurn.boughtOrReceivedCards[card.type]?.indexOf(card)).not.toBe(-1);
       expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer взял карт в сброс: 1 шт.');
@@ -1302,51 +1304,51 @@ describe('Player', () => {
 
       room.onCurrentTurn.playedCards.creatures!
         .push(testHelper.createMockCard(room, cardMap[ECardTypes.creatures][11]));
-      expect(activePlayer.totalPower).toBe(17);
+      expect(activePlayer.totalPower).toBe(18);
       const skull1 = testHelper.createMockSkull({ room, id: 1 });
       const skull2 = testHelper.createMockSkull({ room, id: 2 });
       activePlayer.skulls.push(skull1, skull2);
-      expect(activePlayer.totalPower).toBe(19);
+      expect(activePlayer.totalPower).toBe(20);
       room.onCurrentTurn.playedCards.creatures!
         .push(testHelper.createMockCard(room, cardMap[ECardTypes.creatures][11]));
-      expect(activePlayer.totalPower).toBe(21);
+      expect(activePlayer.totalPower).toBe(23);
 
       const familiar2 = testHelper.createMockCard(room, cardMap[ECardTypes.familiars][2]);
       testHelper.giveCardToPlayer(familiar2, activePlayer);
       familiar2.markAsPlayed();
-      expect(activePlayer.totalPower).toBe(24);
+      expect(activePlayer.totalPower).toBe(26);
       const treasure = testHelper.createMockCard(room, cardMap[ECardTypes.treasures][1]);
       activePlayer.discard.push(treasure, treasure, treasure);
-      expect(activePlayer.totalPower).toBe(27);
+      expect(activePlayer.totalPower).toBe(29);
 
       const familiar6 = testHelper.createMockCard(room, cardMap[ECardTypes.familiars][6]);
       testHelper.giveCardToPlayer(familiar6, activePlayer);
       familiar6.markAsPlayed();
-      expect(activePlayer.totalPower).toBe(30);
+      expect(activePlayer.totalPower).toBe(32);
       const spell = testHelper.createMockCard(room, cardMap[ECardTypes.spells][3]);
       activePlayer.discard.push(spell, spell, spell);
-      expect(activePlayer.totalPower).toBe(33);
+      expect(activePlayer.totalPower).toBe(35);
 
       const familiar8 = testHelper.createMockCard(room, cardMap[ECardTypes.familiars][8]);
       testHelper.giveCardToPlayer(familiar8, activePlayer);
-      expect(activePlayer.totalPower).toBe(33);
+      expect(activePlayer.totalPower).toBe(35);
       familiar8.markAsPlayed();
-      expect(activePlayer.totalPower).toBe(37);
+      expect(activePlayer.totalPower).toBe(39);
 
       const wizard13 = testHelper.createMockCard(room, cardMap[ECardTypes.wizards][13]);
       testHelper.giveCardToPlayer(wizard13, activePlayer);
-      expect(activePlayer.totalPower).toBe(37);
+      expect(activePlayer.totalPower).toBe(39);
       wizard13.markAsPlayed();
-      expect(activePlayer.totalPower).toBe(40);
+      expect(activePlayer.totalPower).toBe(42);
 
       const legend11 = testHelper.createMockCard(room, cardMap[ECardTypes.legends][11]);
       testHelper.giveCardToPlayer(legend11, activePlayer);
-      expect(activePlayer.totalPower).toBe(40);
+      expect(activePlayer.totalPower).toBe(42);
       legend11.markAsPlayed();
-      expect(activePlayer.totalPower).toBe(80);
+      expect(activePlayer.totalPower).toBe(84);
 
       room.onCurrentTurn.powerWasted = 40;
-      expect(activePlayer.totalPower).toBe(40);
+      expect(activePlayer.totalPower).toBe(44);
     });
   });
 

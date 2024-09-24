@@ -7,13 +7,13 @@ import { getLastElement, getRandomElements, toPlayerVariant } from 'Helpers';
 export interface TPlaySkullParams {
   room: Room;
   skull: Skull;
-  attacker?: Player;
+  killer?: Player;
 }
 
 // TODO: перенести в Skull
 export const playSkull = async ({
   room,
-  attacker,
+  killer,
   skull,
 }: TPlaySkullParams) => {
   try {
@@ -146,9 +146,12 @@ export const playSkull = async ({
         break;
       }
       case 9:
-        if (attacker) {
-          attacker.damage({ damage: 8 });
+        if (killer) {
+          const isKillerDead = killer.damage({ damage: 8 });
           room.logEvent(`Игрок ${skullOwner.nickname} разыграл жетон дохлого колдуна`);
+          if (isKillerDead) {
+            room.giveTowerToPlayer(skullOwner);
+          }
         }
         break;
       case 10:

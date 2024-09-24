@@ -134,7 +134,7 @@ export class Player {
     if (giveSkull) {
       const skull = this.room.skulls.slice(-1)[0];
       this.takeSkull(skull, this.room.skulls);
-      void skull.play({ attacker });
+      void skull.play({ killer: attacker });
     }
 
     if (!attacker) {
@@ -145,12 +145,7 @@ export class Player {
 
     this.room.logEvent(`Игрок ${attacker.nickname} убил игрока ${this.nickname}`);
 
-    const otherPlayers = this.room.getPlayersExceptPlayer(attacker);
-
-    attacker.hasTower = true;
-    otherPlayers.forEach(p => {
-      p.hasTower = false;
-    });
+    this.room.giveTowerToPlayer(attacker);
 
     const place6 = attacker.getCards('activePermanent', ECardTypes.places, 6);
     if (place6.length) {
@@ -558,8 +553,6 @@ export class Player {
       } else {
         card.ownerNickname = this.nickname;
       }
-      card.played = false;
-      card.playing = false;
       // Получаем чужую или покупаем карту для активного игрока
       if (this.theSame(this.room.activePlayer)
           && from !== this.deck
@@ -670,7 +663,6 @@ export class Player {
 
   get totalPower(): number {
     let power = Object.values(this.room.onCurrentTurn.playedCards).flat()
-      .filter(card => card.played)
       .reduce((sum, card) => sum + card.power, 0);
     power += this.room.onCurrentTurn.additionalPower;
 

@@ -174,6 +174,40 @@ describe('playProp', () => {
       expect(room.logEvent).toHaveBeenLastCalledWith('Игрок activePlayer разыграл свойство');
     });
 
+    test('Может умереть от разыгрывания', async () => {
+      activePlayer.hp = 4;
+      const prop = testHelper.createMockProp({ room, ...propMap[4] });
+      prop.ownerNickname = activePlayer.nickname;
+      activePlayer.props = [prop];
+      room.skulls = [
+        testHelper.createMockSkull({ id: 15, room }),
+        testHelper.createMockSkull({ id: 16, room }),
+      ];
+
+      await playProp({ room, prop });
+
+      expect(prop.played).toBeTruthy();
+      expect(activePlayer.hand.length).toBe(6);
+      expect(activePlayer.deck.length).toBe(4);
+      expect(activePlayer.hp).toBe(20);
+      expect(room.logEvent).toHaveBeenLastCalledWith('Игрок activePlayer разыграл свойство');
+    });
+
+    test('Не разыгрывается при здоровье < 4', async () => {
+      activePlayer.hp = 3;
+      const prop = testHelper.createMockProp({ room, ...propMap[4] });
+      prop.ownerNickname = activePlayer.nickname;
+      activePlayer.props = [prop];
+
+      await playProp({ room, prop });
+
+      expect(prop.played).toBeFalsy();
+      expect(activePlayer.hand.length).toBe(5);
+      expect(activePlayer.deck.length).toBe(5);
+      expect(activePlayer.hp).toBe(3);
+      expect(room.logEvent).toHaveBeenCalledTimes(0);
+    });
+
     test('Не разыгрывается дважды при быстром нажатии кнопки', async () => {
       const prop = testHelper.createMockProp({ room, ...propMap[4] });
       prop.ownerNickname = activePlayer.nickname;

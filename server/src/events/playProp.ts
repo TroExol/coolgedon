@@ -15,17 +15,20 @@ export const playProp = async ({
   card,
 }: TPlayPropParams) => {
   try {
-    if (room.gameEnded || prop.played || prop.playing || !prop.owner || prop.owner !== room.activePlayer) {
+    if (
+      room.gameEnded
+      || prop.played
+      || prop.playing
+      || !prop.owner
+      || prop.owner !== room.activePlayer
+      || !prop.canPlay()
+    ) {
       return;
     }
     const finalPlayer = prop.owner;
 
     switch (prop.id) {
       case 1: {
-        if (!finalPlayer.discard.length) {
-          return;
-        }
-
         const selected = await finalPlayer.selectCards({
           cards: finalPlayer.discard,
           variants: [{ id: 1, value: 'Положить' }],
@@ -46,19 +49,17 @@ export const playProp = async ({
         break;
       case 3: {
         const countWizards = room.onCurrentTurn.boughtOrReceivedCards.wizards?.length || 0;
-        if (!countWizards) {
-          return;
-        }
         finalPlayer.takeCardsTo('hand', countWizards, finalPlayer.deck);
         room.logEvent(`Игрок ${finalPlayer.nickname} разыграл свойство`);
         break;
       }
-      case 4:
+      case 4: {
         prop.playing = true;
         finalPlayer.damage({ damage: 4 });
         finalPlayer.takeCardsTo('hand', 1, finalPlayer.deck);
         prop.markAsPlayed();
         break;
+      }
       case 5: {
         if (!finalPlayer.deck.length) {
           finalPlayer.shuffleDiscardToDeck();

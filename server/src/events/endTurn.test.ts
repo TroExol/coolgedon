@@ -68,31 +68,13 @@ describe('endTurn', () => {
     expect(room.onCurrentTurn).toEqual(getEmptyOnCurrentTurn());
   });
 
-  test('Заканчивается ход и возвращаются заимствованные карты', async () => {
-    const cardTemp = testHelper.createMockCard(room, cardMap[ECardTypes.creatures][1]);
-    cardTemp.ownerNickname = otherPlayer.nickname;
-    cardTemp.tempOwnerNickname = activePlayer.nickname;
-    activePlayer.hand.push(cardTemp);
-    const hand = [...activePlayer.hand];
-
-    await endTurn(room, activePlayer.nickname);
-
-    expect(room.activePlayer).toEqual(otherPlayer);
-    hand.forEach(card => {
-      expect(activePlayer.hand.indexOf(card)).toBe(-1);
-    });
-    expect(otherPlayer.discard.indexOf(cardTemp)).not.toBe(-1);
-    expect(activePlayer.discard.length).toBe(5);
-    expect(room.sendInfo).toHaveBeenCalledTimes(1);
-    expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer закончил ход');
-    expect(playTowerSpy).toHaveBeenCalledTimes(0);
-    expect(room.onCurrentTurn).toEqual(getEmptyOnCurrentTurn());
-  });
-
   test('Заканчивается ход и сбрасываются флаги карт', async () => {
     const topCard = getLastElement(activePlayer.hand)!;
     topCard.playing = true;
     topCard.played = true;
+    const topCard2 = getLastElement(otherPlayer.hand)!;
+    topCard2.playing = true;
+    topCard2.played = true;
     const hand = [...activePlayer.hand];
 
     await endTurn(room, activePlayer.nickname);
@@ -103,6 +85,8 @@ describe('endTurn', () => {
     });
     expect(topCard.played).toBeFalsy();
     expect(topCard.playing).toBeFalsy();
+    expect(topCard2.played).toBeFalsy();
+    expect(topCard2.playing).toBeFalsy();
     expect(activePlayer.discard.length).toBe(5);
     expect(room.sendInfo).toHaveBeenCalledTimes(1);
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer закончил ход');
@@ -111,8 +95,9 @@ describe('endTurn', () => {
   });
 
   test('Заканчивается ход и сбрасываются флаги свойств', async () => {
-    const topProp = getLastElement(activePlayer.props)!;
-    topProp.played = true;
+    const prop3 = testHelper.createMockProp({ room, ...propMap[3] });
+    prop3.ownerNickname = activePlayer.nickname;
+    spyOn(prop3, 'play');
     const hand = [...activePlayer.hand];
 
     await endTurn(room, activePlayer.nickname);
@@ -121,7 +106,8 @@ describe('endTurn', () => {
     hand.forEach(card => {
       expect(activePlayer.hand.indexOf(card)).toBe(-1);
     });
-    expect(topProp.played).toBeFalsy();
+    expect(prop3.played).toBeFalsy();
+    expect(prop3.play).toHaveBeenCalledTimes(0);
     expect(activePlayer.discard.length).toBe(5);
     expect(room.sendInfo).toHaveBeenCalledTimes(1);
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer закончил ход');
@@ -130,22 +116,21 @@ describe('endTurn', () => {
   });
 
   test('Разыгрывается prop 3', async () => {
-    const prop3 = testHelper.createMockProp(propMap[3]);
-    spyOn(prop3, 'play').mockImplementation(async () => {});
+    const prop3 = testHelper.createMockProp({ room, ...propMap[3] });
+    prop3.ownerNickname = activePlayer.nickname;
+    spyOn(prop3, 'play');
     activePlayer.props = [prop3];
     room.onCurrentTurn.boughtOrReceivedCards[ECardTypes.wizards] = [
       testHelper.createMockCard(room, cardMap[ECardTypes.wizards][1]),
     ];
-    const hand = [...activePlayer.hand];
 
     await endTurn(room, activePlayer.nickname);
 
     expect(room.activePlayer).toEqual(otherPlayer);
-    hand.forEach(card => {
-      expect(activePlayer.hand.indexOf(card)).toBe(-1);
-    });
-    expect(activePlayer.discard.length).toBe(5);
-    expect(room.sendInfo).toHaveBeenCalledTimes(1);
+    expect(activePlayer.hand.length).toBe(6);
+    expect(activePlayer.discard.length).toBe(0);
+    expect(activePlayer.deck.length).toBe(4);
+    expect(room.sendInfo).toHaveBeenCalled();
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer закончил ход');
     expect(playTowerSpy).toHaveBeenCalledTimes(0);
     expect(prop3.play).toHaveBeenCalledTimes(1);
@@ -229,8 +214,8 @@ describe('endTurn', () => {
     });
     expect(activePlayer.discard.length).toBe(0);
     expect(topProp.played).toBeTruthy();
-    expect(topCard.played).toBeTruthy();
-    expect(topCard.playing).toBeTruthy();
+    expect(topCard.played).toBeFalsy();
+    expect(topCard.playing).toBeFalsy();
     expect(room.sendInfo).toHaveBeenCalledTimes(1);
     expect(room.logEvent).toHaveBeenCalledWith('Игрок activePlayer закончил ход');
     expect(playTowerSpy).toHaveBeenCalledTimes(0);

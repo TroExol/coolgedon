@@ -91,10 +91,6 @@ export class Card {
       console.error('Невозможно активировать постоянку: владелец не активный игрок');
       return;
     }
-    if (this.tempOwnerNickname) {
-      this.ownerNickname = this.tempOwnerNickname;
-      this.tempOwnerNickname = undefined;
-    }
     const owner = this.owner!;
     void this.play({ type: 'permanent', params: { initPermanent: true } });
     const cardIndex = owner.hand.findIndex(card => card.theSame(this));
@@ -152,7 +148,7 @@ export class Card {
           case 14:
             return finalTargetsForLawlessness.some(p => p.activePermanent.length);
           case 15:
-            return true;
+            return finalTargetsForLawlessness.some(p => p.hp >= 4);
           case 16:
             return true;
           case 17:
@@ -628,7 +624,7 @@ export class Card {
   }
 
   markAsPlayed() {
-    if (this.played || this.room.onCurrentTurn.playedCards[this.type]?.find(c => this.theSame(c))) {
+    if (this.played) {
       throw new Error('Невозможно пометить карту разыгранной: карта была уже разыграна');
     }
     const owner = this.owner;

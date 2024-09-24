@@ -4,7 +4,7 @@ const handler: TPlayCardHandler = async ({
   player,
   markAsPlayed,
 }) => {
-  if (!player.deck.length) {
+  if (player.deck.length < 2) {
     player.shuffleDiscardToDeck();
   }
   if (!player.deck.length) {

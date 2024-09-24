@@ -58,9 +58,8 @@ describe('familiars 3', () => {
     expect(activePlayer.totalPower).toBe(2);
   });
 
-  test('Замешивает колоду и уничтожает', async () => {
-    activePlayer.discard = [...activePlayer.deck];
-    activePlayer.deck = [];
+  test('Замешивает колоду, если карт в колоде < 2 и уничтожает', async () => {
+    activePlayer.discard = [...activePlayer.deck.splice(1)];
     const topCard = getLastElement(activePlayer.discard)!;
 
     const selectCardsSpy = spyOn(activePlayer, 'selectCards').mockImplementation(fn()).mockResolvedValue({ cards: [topCard] });

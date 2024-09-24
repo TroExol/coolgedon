@@ -292,9 +292,23 @@ describe('playSkull', () => {
       const skull = testHelper.createMockSkull({ room, id: 9 });
       testHelper.giveSkullToPlayer(skull, otherPlayer);
 
-      await playSkull({ room, skull, attacker: activePlayer });
+      await playSkull({ room, skull, killer: activePlayer });
 
       expect(activePlayer.hp).toBe(12);
+      expect(room.logEvent).toHaveBeenCalledWith('Игрок otherPlayer разыграл жетон дохлого колдуна');
+    });
+
+    test('Разыгрывается, если убивает атакующего, то дает замок', async () => {
+      activePlayer.hp = 8;
+      const skull = testHelper.createMockSkull({ room, id: 9 });
+      testHelper.giveSkullToPlayer(skull, otherPlayer);
+      room.skulls = [testHelper.createMockSkull({ room, id: 15 })];
+
+      await playSkull({ room, skull, killer: activePlayer });
+
+      expect(activePlayer.hp).toBe(20);
+      expect(otherPlayer.hasTower).toBeTruthy();
+      expect(activePlayer.hasTower).toBeFalsy();
       expect(room.logEvent).toHaveBeenCalledWith('Игрок otherPlayer разыграл жетон дохлого колдуна');
     });
 

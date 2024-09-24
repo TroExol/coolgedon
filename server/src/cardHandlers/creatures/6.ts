@@ -74,7 +74,7 @@ const handler: TPlayCardHandler = async ({
 
   const selectedSkull = selected.skulls[0];
   finalTarget.takeSkull(selectedSkull, room.skulls);
-  await selectedSkull.play({ attacker });
+  await selectedSkull.play({ killer: attacker });
   markAsPlayed?.();
 };
 

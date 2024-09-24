@@ -30,7 +30,9 @@ describe('wizards 8', () => {
     expect(wizard8.played).toBeTruthy();
     expect(activePlayer.deck.length).toBe(1);
     expect(activePlayer.hand.length).toBe(4);
+    expect(activePlayer.hand.indexOf(wizard8)).toBe(-1);
     expect(activePlayer.discard.length).toBe(6);
+    expect(activePlayer.discard.indexOf(wizard8)).not.toBe(-1);
     expect(activePlayer.totalPower).toBe(1);
   });
 
@@ -44,6 +46,6 @@ describe('wizards 8', () => {
     expect(activePlayer.deck.length).toBe(5);
     expect(activePlayer.hand.length).toBe(6);
     expect(activePlayer.discard.length).toBe(0);
-    expect(activePlayer.totalPower).toBe(1);
+    expect(activePlayer.totalPower).toBe(3);
   });
 });

@@ -113,7 +113,7 @@ export class Room {
       targetPlayer.heal(countTreasure3 * targetPlayer.countActivePermanents);
     }
 
-    this.activePlayerNickname = targetPlayer?.nickname;
+    this.activePlayerNickname = targetPlayer.nickname;
     targetPlayer.activatePermanents();
   }
 
@@ -355,6 +355,13 @@ export class Room {
 
   getSocketClient(nickname: string): ExtractedValue<typeof this.sockets> | undefined {
     return this.sockets[nickname];
+  }
+
+  giveTowerToPlayer(player: Player) {
+    this.getPlayersExceptPlayer(player).forEach(p => {
+      p.hasTower = false;
+    });
+    player.hasTower = true;
   }
 
   logEvent(msg: string) {

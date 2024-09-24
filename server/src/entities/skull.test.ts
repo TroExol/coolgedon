@@ -57,11 +57,11 @@ describe('Skull', () => {
 
       spyOn(room, 'endGame');
 
-      await skull.play({ attacker: player2 });
+      await skull.play({ killer: player2 });
       expect(playSkullEvent.playSkull).toHaveBeenCalledWith({
         room,
         skull,
-        attacker: player2,
+        killer: player2,
       });
       expect(room.endGame).toHaveBeenCalledTimes(0);
     });

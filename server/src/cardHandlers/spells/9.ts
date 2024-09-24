@@ -5,7 +5,7 @@ const handler: TPlayCardHandler = async ({
   player,
   markAsPlayed,
 }) => {
-  if (player.skulls.length >= 3) {
+  if (player.countSkulls >= 3) {
     player.takeCardsTo('hand', 3, player.deck);
   } else {
     room.onCurrentTurn.additionalPower += 2;

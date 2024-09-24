@@ -72,30 +72,6 @@ describe('Card', () => {
       expect(room.logEvent).toHaveBeenCalledWith('Игрок player активировал постоянку');
     });
 
-    test('Активируется постоянка и поменяется владелец', () => {
-      const room = testHelper.createMockRoom('1', 'player');
-      const player = testHelper.createMockPlayer({ room, nickname: 'player' });
-      const player2 = testHelper.createMockPlayer({ room, nickname: 'player2' });
-      testHelper.addPlayerToRoom(room, player);
-      testHelper.addPlayerToRoom(room, player2);
-      const card = testHelper.createMockCard(room, cardMap[ECardTypes.places][1]);
-      testHelper.giveCardToPlayer(card, player);
-      card.ownerNickname = 'player2';
-      card.tempOwnerNickname = 'player';
-
-      spyOn(card, 'play').mockImplementation(async () => {});
-      spyOn(room, 'sendInfo').mockImplementation(fn());
-      spyOn(room, 'logEvent').mockImplementation(fn());
-
-      card.activate();
-      expect(card.play).toHaveBeenCalled();
-      expect(card.tempOwnerNickname).toBeUndefined();
-      expect(card.ownerNickname).toBe('player');
-      expect(player.activePermanent.indexOf(card)).not.toBe(-1);
-      expect(room.sendInfo).toHaveBeenCalled();
-      expect(room.logEvent).toHaveBeenCalledWith('Игрок player активировал постоянку');
-    });
-
     test('Нельзя активировать постоянку без owner', () => {
       const room = testHelper.createMockRoom('1', 'player');
       const card = testHelper.createMockCard(room, cardMap[ECardTypes.places][1]);
@@ -463,6 +439,18 @@ describe('Card', () => {
         data: undefined,
       });
 
+      card.playing = true;
+
+      expect(card.format(player)).toEqual({
+        number: 1,
+        ownerNickname: 'player',
+        totalCost: 4,
+        id: card.id,
+        canPlay: false,
+        type: ECardTypes.creatures,
+        data: undefined,
+      });
+
       player.skulls.push(testHelper.createMockSkull({ id: 19, room }));
 
       expect(card.format(player)).toEqual({
@@ -470,7 +458,7 @@ describe('Card', () => {
         ownerNickname: 'player',
         totalCost: 5,
         id: card.id,
-        canPlay: true,
+        canPlay: false,
         type: ECardTypes.creatures,
         data: undefined,
       });

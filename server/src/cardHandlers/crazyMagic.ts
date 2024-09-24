@@ -1,3 +1,5 @@
+import { EEventTypes } from '@coolgedon/shared';
+
 import type { TPlayCardHandler } from 'Type/events/playCard';
 
 const handler: TPlayCardHandler = async ({
@@ -53,14 +55,30 @@ const handler: TPlayCardHandler = async ({
 
   // Чужая карта
   const someonesElseCard = finalTarget.deck.splice(-1, 1)[0];
+  room.sendInfo();
+  room.emitToPlayers(room.playersArray, EEventTypes.showModalCards, {
+    cards: [someonesElseCard.format()],
+    title: `Игрок ${player.nickname} шалит картой игрока ${finalTarget.nickname}`,
+  });
   if (someonesElseCard.permanent) {
     someonesElseCard.ownerNickname = player.nickname;
-    someonesElseCard.tempOwnerNickname = undefined;
-  } else {
-    someonesElseCard.tempOwnerNickname = player.nickname;
+    player.takeCardsTo('hand', [someonesElseCard], [someonesElseCard]);
+    room.logEvent(`Игрок ${player.nickname} забрал постоянку у игрока ${finalTarget.nickname}`);
+    return;
   }
-  player.takeCardsTo('hand', [someonesElseCard], [someonesElseCard]);
-  room.logEvent(`Игрок ${player.nickname} позаимствовал карту у игрока ${finalTarget.nickname}`);
+  try {
+    someonesElseCard.tempOwnerNickname = player.nickname;
+    await someonesElseCard.play({ type: 'simple', params: { cardUsedByPlayer: true } });
+    room.logEvent(`Игрок ${player.nickname} разыграл карту игрока ${finalTarget.nickname}`);
+  } catch (error) {
+    console.error('Ошибка разыгрывания карты шальной магией', error);
+  } finally {
+    someonesElseCard.tempOwnerNickname = undefined;
+    finalTarget.discard.push(someonesElseCard);
+    someonesElseCard.played = false;
+    someonesElseCard.playing = false;
+    room.sendInfo();
+  }
 };
 
 exports.default = handler;
